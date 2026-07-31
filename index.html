@@ -2,87 +2,82 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>세계여행 부루마블 (방 코드 접속)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>세계여행 부루마블 (온라인)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script type="module">
-  import { joinRoom } from "https://esm.sh/trystero@0.21.2/torrent";
-  window.__trysteroJoinRoom = joinRoom;
-</script>
+<script src="https://cdn.jsdelivr.net/npm/trystero@0.21.2/dist/trystero.torrent.min.js"></script>
 <style>
   :root{
     --navy:#16324F; --navy-deep:#0E2338; --cream:#F4EBD9; --gold:#D3A429; --rust:#B5502D;
     --g0:#E4B7A0; --g1:#C97B63; --g2:#7FA99B; --g3:#5C7AA0; --g4:#9C6B98;
   }
   *{box-sizing:border-box;}
-  body{ margin:0; background:radial-gradient(ellipse at top, #1d3d5f 0%, var(--navy-deep) 70%); color:var(--cream); font-family:'Space Mono',monospace; min-height:100vh; padding:14px;}
-  h1{ font-family:'Playfair Display',serif; font-weight:900; text-align:center; font-size:1.4rem; color:var(--gold); margin:4px 0 2px;}
-  .subtitle{ text-align:center; font-size:0.68rem; letter-spacing:2px; color:var(--cream); opacity:0.6; margin-bottom:12px; text-transform:uppercase;}
-  .wrap{ max-width:720px; margin:0 auto; }
-  .card{ background:#122a45; border:1.5px dashed var(--gold); border-radius:8px; padding:16px; margin-bottom:12px; font-size:0.85rem; line-height:1.6; text-align:center;}
-  .card h3{ margin:0 0 8px; color:var(--gold); font-family:'Playfair Display',serif; font-size:1.1rem;}
-  .room-code{ font-size:1.8rem; font-weight:700; letter-spacing:3px; color:var(--gold); background:#0E2338; border-radius:8px; padding:12px; margin:10px 0; }
-  input[type=text]{ width:100%; background:#0E2368; background:#0E2338; color:var(--cream); border:1.5px solid var(--gold); border-radius:6px; padding:12px; font-family:'Space Mono',monospace; font-size:1.1rem; text-align:center; letter-spacing:2px; text-transform:uppercase;}
-  .role-row{ display:flex; gap:10px; justify-content:center; margin-bottom:14px; flex-wrap:wrap;}
-  .slot-box{ background:#0E2338; border-radius:6px; padding:8px 10px; margin-bottom:6px; font-size:0.78rem; display:flex; justify-content:space-between;}
-  .status{ font-size:0.78rem; opacity:0.85;}
-  .status.ok{ color:#8fd18f; }
+  body{ margin:0; background:radial-gradient(ellipse at top, #1d3d5f 0%, var(--navy-deep) 70%); color:var(--cream); font-family:'Space Mono',monospace; min-height:100vh; padding:8px;}
+  h1{ font-family:'Playfair Display',serif; font-weight:900; text-align:center; font-size:1.3rem; color:var(--gold); margin:4px 0 2px;}
+  .subtitle{ text-align:center; font-size:0.65rem; letter-spacing:1px; color:var(--cream); opacity:0.6; margin-bottom:8px; text-transform:uppercase;}
+  .wrap{ max-width:600px; margin:0 auto; }
+  .card{ background:#122a45; border:1.5px dashed var(--gold); border-radius:8px; padding:12px; margin-bottom:10px; font-size:0.8rem; line-height:1.5; text-align:center;}
+  .card h3{ margin:0 0 6px; color:var(--gold); font-family:'Playfair Display',serif; font-size:1rem;}
+  .room-code{ font-size:1.5rem; font-weight:700; letter-spacing:3px; color:var(--gold); background:#0E2338; border-radius:8px; padding:8px; margin:8px 0; }
+  input[type=text], textarea{ width:100%; background:#0E2338; color:var(--cream); border:1.5px solid var(--gold); border-radius:6px; padding:10px; font-family:'Space Mono',monospace; font-size:0.9rem; text-align:center;}
+  .role-row{ display:flex; gap:8px; justify-content:center; margin-top:8px; flex-wrap:wrap;}
+  .slot-box{ background:#0E2338; border-radius:6px; padding:6px 8px; margin-bottom:4px; font-size:0.75rem; display:flex; justify-content:space-between;}
+  .status{ font-size:0.75rem; opacity:0.85;}
   .err{ border-color:#C1443B !important; }
-  .board-wrap{ background:var(--navy); border:2px solid var(--gold); border-radius:10px; padding:8px; box-shadow:0 8px 24px rgba(0,0,0,0.4);}
-  .board{ display:grid; grid-template-columns:repeat(9,1fr); grid-template-rows:repeat(9,1fr); gap:3px; aspect-ratio:1/1;}
-  .center-info{ grid-column:2/9; grid-row:2/9; background:linear-gradient(135deg,#1a3a5c,#122a45); border:1px dashed rgba(212,164,41,0.4); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:8px; gap:4px;}
-  .center-info .compass{ font-size:2.2rem; }
-  .center-info .turn-label{ font-family:'Playfair Display',serif; font-weight:700; font-size:0.95rem; color:var(--gold);}
-  .tile{ position:relative; border-radius:4px; background:#EDE2CB; color:#2a2a2a; font-size:0.5rem; line-height:1.1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:1px; overflow:hidden; border:1px solid rgba(0,0,0,0.15);}
-  .tile .name{font-weight:700;font-size:0.52rem;} .tile .price{font-size:0.42rem;opacity:0.75;}
-  .tile.corner{background:var(--gold);color:var(--navy-deep);font-size:0.55rem;font-weight:700;}
+  .board-wrap{ background:var(--navy); border:2px solid var(--gold); border-radius:10px; padding:4px; box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+  .board{ display:grid; grid-template-columns:repeat(9,1fr); grid-template-rows:repeat(9,1fr); gap:2px; aspect-ratio:1/1;}
+  .center-info{ grid-column:2/9; grid-row:2/9; background:linear-gradient(135deg,#1a3a5c,#122a45); border:1px dashed rgba(212,164,41,0.4); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:4px; gap:2px;}
+  .center-info .compass{ font-size:1.8rem; }
+  .center-info .turn-label{ font-family:'Playfair Display',serif; font-weight:700; font-size:0.85rem; color:var(--gold);}
+  .tile{ position:relative; border-radius:4px; background:#EDE2CB; color:#2a2a2a; font-size:0.48rem; line-height:1.1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:1px; overflow:hidden; border:1px solid rgba(0,0,0,0.15);}
+  .tile .name{font-weight:700;font-size:0.5rem; word-break:keep-all;} .tile .price{font-size:0.4rem;opacity:0.8;}
+  .tile.corner{background:var(--gold);color:var(--navy-deep);font-size:0.5rem;font-weight:700;}
   .tile.chance{background:#F0DDA0;} .tile.tax{background:#D9C4B0;}
   .tile.g0{background:var(--g0);} .tile.g1{background:var(--g1);color:#fff;} .tile.g2{background:var(--g2);color:#0e2338;}
   .tile.g3{background:var(--g3);color:#fff;} .tile.g4{background:var(--g4);color:#fff;}
-  .stamp{position:absolute;top:1px;right:1px;width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(0,0,0,0.5);}
+  .stamp{position:absolute;top:1px;right:1px;width:8px;height:8px;border-radius:50%;border:1px solid rgba(0,0,0,0.5);}
   .lvl{position:absolute;bottom:1px;left:1px;font-size:0.4rem;font-weight:700;}
   .tokens{position:absolute;bottom:1px;display:flex;gap:1px;}
-  .token{width:7px;height:7px;border-radius:50%;border:1px solid rgba(0,0,0,0.4);}
-  .panel{ background:var(--navy); border:2px solid var(--gold); border-radius:10px; padding:14px; margin-top:14px;}
-  .players{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-  .player-card{flex:1;min-width:140px;background:#122a45;border-radius:8px;padding:8px 10px;border:2px solid transparent;}
-  .player-card.active{border-color:var(--gold);box-shadow:0 0 12px rgba(212,164,41,0.4);}
+  .token{width:6px;height:6px;border-radius:50%;border:1px solid rgba(0,0,0,0.4);}
+  .panel{ background:var(--navy); border:2px solid var(--gold); border-radius:10px; padding:10px; margin-top:10px;}
+  .players{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+  .player-card{flex:1;min-width:110px;background:#122a45;border-radius:6px;padding:6px;border:1.5px solid transparent;}
+  .player-card.active{border-color:var(--gold);box-shadow:0 0 8px rgba(212,164,41,0.4);}
   .player-card.bankrupt{opacity:0.4;}
-  .player-name{display:flex;align-items:center;gap:6px;font-weight:700;font-size:0.85rem;margin-bottom:4px;}
-  .dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
-  .player-cash{font-size:0.85rem;color:var(--gold);}
-  .player-props{font-size:0.65rem;opacity:0.7;margin-top:2px;}
-  .log{background:#0E2338;border-radius:8px;padding:8px 10px;height:100px;overflow-y:auto;font-size:0.7rem;line-height:1.5;margin-bottom:12px;}
+  .player-name{display:flex;align-items:center;gap:4px;font-weight:700;font-size:0.75rem;margin-bottom:2px;}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .player-cash{font-size:0.75rem;color:var(--gold);}
+  .player-props{font-size:0.6rem;opacity:0.7;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .log{background:#0E2338;border-radius:6px;padding:6px 8px;height:80px;overflow-y:auto;font-size:0.65rem;line-height:1.4;margin-bottom:8px;}
   .log div{margin-bottom:2px;opacity:0.9;}
-  .dice-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px;}
-  .die{width:44px;height:44px;background:var(--cream);color:var(--navy-deep);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;box-shadow:0 3px 0 rgba(0,0,0,0.3);}
+  .dice-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+  .die{width:36px;height:36px;background:var(--cream);color:var(--navy-deep);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,0.3);}
   .die.rolling{animation:diceSpin 0.16s linear infinite;background:var(--gold);}
   @keyframes diceSpin{0%{transform:rotate(0deg) scale(1);}30%{transform:rotate(18deg) scale(1.12);}60%{transform:rotate(-16deg) scale(0.95);}100%{transform:rotate(0deg) scale(1);}}
-  .btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
-  button{ font-family:'Space Mono',monospace; background:var(--gold); color:var(--navy-deep); border:none; border-radius:6px; padding:10px 16px; font-weight:700; font-size:0.82rem; cursor:pointer; box-shadow:0 3px 0 #a5791c;}
-  button:active{transform:translateY(2px);box-shadow:none;}
-  button.secondary{ background:transparent; color:var(--cream); border:1.5px solid var(--cream); box-shadow:none;}
+  .btn-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+  button{ font-family:'Space Mono',monospace; background:var(--gold); color:var(--navy-deep); border:none; border-radius:6px; padding:8px 12px; font-weight:700; font-size:0.78rem; cursor:pointer; box-shadow:0 2px 0 #a5791c;}
+  button:active{transform:translateY(1px);box-shadow:none;}
+  button.secondary{ background:transparent; color:var(--cream); border:1px solid var(--cream); box-shadow:none;}
   button:disabled{opacity:0.35;cursor:default;box-shadow:none;}
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
-  .modal{background:var(--cream);color:var(--navy-deep);border-radius:12px;padding:20px;max-width:380px;width:100%;max-height:80vh;overflow-y:auto;border:3px solid var(--gold);}
-  .modal h2{font-family:'Playfair Display',serif;margin:0 0 10px;font-size:1.15rem;color:var(--rust);}
-  .modal p{font-size:0.85rem;line-height:1.5;margin:0 0 14px;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:50;padding:14px;}
+  .modal{background:var(--cream);color:var(--navy-deep);border-radius:10px;padding:16px;max-width:340px;width:100%;max-height:80vh;overflow-y:auto;border:2px solid var(--gold);}
+  .modal h2{font-family:'Playfair Display',serif;margin:0 0 8px;font-size:1rem;color:var(--rust);}
+  .modal p{font-size:0.78rem;line-height:1.4;margin:0 0 10px;}
   .modal .btn-row{justify-content:flex-end;}
-  .dest-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;}
-  .dest-btn{background:#fff;border:1.5px solid var(--navy);border-radius:6px;padding:8px;font-size:0.7rem;text-align:left;cursor:pointer;}
-  .upg-row{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:0.75rem;}
+  .dest-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px;max-height:180px;overflow-y:auto;}
+  .dest-btn{background:#fff;border:1px solid var(--navy);border-radius:4px;padding:6px;font-size:0.65rem;text-align:left;cursor:pointer;}
+  .upg-row{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:4px;padding:6px;margin-bottom:6px;font-size:0.7rem;}
 </style>
 </head>
 <body>
 <div class="wrap">
 <h1>🌍 세계여행 부루마블</h1>
-<div class="subtitle">방 코드로 바로 접속</div>
+<div class="subtitle">실시간 멀티플레이어</div>
 <div id="root"></div>
 </div>
 
 <script>
-// ================= STATIC DATA =================
 const board = [
   {name:"출발",type:"start"},{name:"서울",type:"city",price:120000,group:0},{name:"도쿄",type:"city",price:140000,group:0},
   {name:"황금열쇠",type:"chance"},{name:"베이징",type:"city",price:160000,group:0},{name:"방콕",type:"city",price:180000,group:0},
@@ -124,7 +119,6 @@ function freshGame(){
   };
 }
 
-// ================= PURE MUTATORS =================
 function payToll(g, playerIdx, tileIdx){
   const ts=g.tileState[tileIdx]; const owner=g.players[ts.owner]; const p=g.players[playerIdx]; const tile=board[tileIdx];
   let toll;
@@ -179,19 +173,9 @@ function resolveTileMut(g, playerIdx){
   } else afterResolveMut(g);
 }
 
-// ================= NETWORK STATE (Trystero) =================
-let myRole=null;        // 'host' | 'guest-pending' | 'guest'
-let myIndex=null;
-let game=null;
-let room=null;
-let sendMsg=null, getMsg=null;
-let isHost=false;
-let assignedSlots={};   // host only: peerId -> slot
-let nextGuestSlot=1;
-let errorMsg=null;
-let roomCode=null;
-let guestStatus=null;
-const APP_ID = "kr-world-tour-blue-marble-v1";
+let myRole=null, myIndex=null, game=null, room=null, sendMsg=null, getMsg=null;
+let isHost=false, assignedSlots={}, nextGuestSlot=1, errorMsg=null, roomCode=null, guestStatus=null;
+const APP_ID = "bm-room-v2";
 
 function setError(msg){ errorMsg=msg; render(); }
 function genRoomCode(){
@@ -199,13 +183,6 @@ function genRoomCode(){
   let s="BM"; for(let i=0;i<4;i++) s+=chars[Math.floor(Math.random()*chars.length)];
   return s;
 }
-function copyText(elId){
-  const el=document.getElementById(elId); if(!el) return;
-  el.focus(); if(el.select) el.select();
-  try{ navigator.clipboard.writeText(el.value||el.textContent).catch(()=>{ document.execCommand('copy'); }); }
-  catch(e){ try{ document.execCommand('copy'); }catch(e2){} }
-}
-
 function handleMsg(data, peerId){
   if(!data || !data.t) return;
   if(data.t==='assign'){ myIndex=data.slot; guestStatus=null; render(); }
@@ -216,17 +193,17 @@ function handleMsg(data, peerId){
 }
 
 function initTrystero(code){
-  if(!window.__trysteroJoinRoom){
-    setError("연결 라이브러리를 불러오는 중이에요. 5초 정도 기다렸다가 다시 눌러주세요.");
-    if(myRole==='guest') myRole='guest-pending';
-    render();
+  const joinFn = (window.trystero && window.trystero.joinRoom) || window.__trysteroJoinRoom;
+  if(!joinFn){
+    setError("연결 모듈 로딩 중... 3초 후 다시 시도해 주세요.");
     return;
   }
   try{
-    room = window.__trysteroJoinRoom({appId: APP_ID}, code);
+    room = joinFn({appId: APP_ID}, code);
     const [send, get] = room.makeAction('msg');
     sendMsg = send; getMsg = get;
     getMsg((data, peerId)=> handleMsg(data, peerId));
+    
     room.onPeerJoin(peerId=>{
       if(isHost){
         if(nextGuestSlot>2) return;
@@ -240,15 +217,11 @@ function initTrystero(code){
       if(isHost && assignedSlots[peerId]!=null){
         const slot=assignedSlots[peerId];
         const g=cloneGame(game); if(g.players[slot]) g.players[slot].connected=false; commitHost(g);
-      } else if(!isHost){
-        setError("호스트와 연결이 끊어졌어요.");
       }
     });
-    if(!isHost){ guestStatus="방을 찾는 중..."; render(); }
+    if(!isHost){ guestStatus="방장을 찾는 중..."; render(); }
   }catch(e){
-    setError("연결 중 오류가 발생했어요: " + (e && e.message ? e.message : e));
-    if(myRole==='guest') myRole='guest-pending';
-    render();
+    setError("연결 오류: " + (e.message||e));
   }
 }
 
@@ -256,26 +229,17 @@ function broadcastState(){ if(sendMsg){ try{ sendMsg({t:'state', g:game}); }catc
 function commitHost(g){ game=g; render(); broadcastState(); }
 
 function startHost(){
-  errorMsg=null;
-  myRole='host'; myIndex=0; isHost=true; game=freshGame();
-  roomCode=genRoomCode();
-  render();
-  initTrystero(roomCode);
+  errorMsg=null; myRole='host'; myIndex=0; isHost=true; game=freshGame();
+  roomCode=genRoomCode(); render(); initTrystero(roomCode);
 }
-
 function startGuestScreen(){ myRole='guest-pending'; errorMsg=null; render(); }
-
 function joinRoomCode(code){
   errorMsg=null;
   if(!code || !code.trim()){ setError("방 코드를 입력해주세요."); return; }
   const target = code.trim().toUpperCase();
-  myRole='guest'; isHost=false;
-  guestStatus="연결 준비 중...";
-  render();
-  initTrystero(target);
+  myRole='guest'; isHost=false; guestStatus="연결 준비 중..."; render(); initTrystero(target);
 }
 
-// ================= ACTION HANDLING (host-authoritative) =================
 function applyAction(actorIdx, name, args){
   if(myRole!=='host') return;
   if(name==='resetGame'){
@@ -298,8 +262,7 @@ function applyAction(actorIdx, name, args){
     g.log.push(`🎫 ${p.name}, 탈출카드를 사용해 무인도를 벗어났습니다.`); g.phase="await-roll"; commitHost(g);
   } else if(name==='stayIsland'){
     const p=g.players[g.current]; p.islandTurns-=1;
-    g.log.push(`🏝️ ${p.name}, 무인도에서 휴식합니다. (남은 턴: ${p.islandTurns})`);
-    nextPlayerMut(g); commitHost(g);
+    g.log.push(`🏝️ ${p.name}, 무인도에서 휴식합니다.`); nextPlayerMut(g); commitHost(g);
   } else if(name==='rollDice'){
     if(g.phase!=='await-roll') return;
     g.rolling=true; commitHost(g);
@@ -309,34 +272,31 @@ function applyAction(actorIdx, name, args){
       const isDouble=d1===d2; g2.doublesStreak = isDouble? g2.doublesStreak+1 : 0; g2.rolling=false;
       if(g2.doublesStreak>=3){
         g2.log.push(`🎲 ${p.name} 더블 3연속! 무인도로 이동합니다.`);
-        p.position=8; p.islandTurns=1; g2.doublesStreak=0;
-        nextPlayerMut(g2); commitHost(g2); return;
+        p.position=8; p.islandTurns=1; g2.doublesStreak=0; nextPlayerMut(g2); commitHost(g2); return;
       }
       const steps=d1+d2; const before=p.position; const after=(before+steps)%N;
       if(after<before){ p.cash+=200000; g2.log.push(`🎉 ${p.name}, 출발점을 지나 200,000원을 받았습니다.`); }
       p.position=after;
       g2.log.push(`🎲 ${p.name}: 주사위 ${d1}+${d2}=${steps} → ${board[after].name} 도착${isDouble?" (더블!)":""}`);
-      resolveTileMut(g2, playerIdx);
-      commitHost(g2);
-    }, 700);
+      resolveTileMut(g2, playerIdx); commitHost(g2);
+    }, 600);
   } else if(name==='buyTile'){
     const p=g.players[g.current]; const tile=board[args[0]];
     if(p.cash>=tile.price){ p.cash-=tile.price; g.tileState[args[0]]={owner:g.current,level:0};
-      g.log.push(`🏷️ ${p.name}, ${tile.name}을(를) ${tile.price.toLocaleString()}원에 매입했습니다.`); }
+      g.log.push(`🏷️ ${p.name}, ${tile.name}을(를) 매입했습니다.`); }
     afterResolveMut(g); commitHost(g);
   } else if(name==='skipBuy'){
-    g.log.push(`🚶 ${g.players[g.current].name}, 구매를 건너뛰었습니다.`);
-    afterResolveMut(g); commitHost(g);
+    g.log.push(`🚶 ${g.players[g.current].name}, 구매를 건너뛰었습니다.`); afterResolveMut(g); commitHost(g);
   } else if(name==='upgradeTile'){
     const p=g.players[g.current]; const tile=board[args[0]]; const ts=g.tileState[args[0]];
     const costs=[tile.price*0.6,tile.price*0.8,tile.price*1.2]; const cost=Math.round(costs[ts.level]);
-    if(ts.level<3 && p.cash>=cost){ p.cash-=cost; ts.level+=1; g.log.push(`🏗️ ${p.name}, ${tile.name}을(를) 업그레이드했습니다.`); }
+    if(ts.level<3 && p.cash>=cost){ p.cash-=cost; ts.level+=1; g.log.push(`🏗️ ${p.name}, ${tile.name}을(를) 건물 추가했습니다.`); }
     commitHost(g);
   } else if(name==='closeUpgrade' || name==='closeInfo'){
     afterResolveMut(g); commitHost(g);
   } else if(name==='chooseWorldtour'){
     const p=g.players[g.current]; p.cash-=100000; p.position=args[0];
-    g.log.push(`✈️ ${p.name}, 여행 경비 100,000원을 내고 ${board[args[0]].name}(으)로 이동했습니다.`);
+    g.log.push(`✈️ ${p.name}, ${board[args[0]].name}(으)로 이동했습니다.`);
     checkBankrupt(g,g.current); resolveTileMut(g,g.current); commitHost(g);
   }
 }
@@ -348,7 +308,6 @@ function act(name, args){
   else if(sendMsg){ try{ sendMsg({t:'action', name, args:args||[]}); }catch(e){} }
 }
 
-// ================= UI =================
 function render(){
   const root=document.getElementById('root');
   const errBanner = errorMsg ? `<div class="card err"><b style="color:#ff8a80;">⚠️ ${errorMsg}</b></div>` : '';
@@ -356,11 +315,11 @@ function render(){
 
   if(myRole===null){
     html += `<div class="card">
-      <h3>어떻게 참가할까요?</h3>
-      <p>한 명이 <b>방을 만들고</b>, 나머지는 그 사람이 알려주는 짧은 <b>방 코드</b>를 입력하면 바로 연결돼요. 계정이나 로그인은 필요 없어요.</p>
+      <h3>부루마블 참가하기</h3>
+      <p>방을 만들고 방 코드를 친구에게 전달하면 준비 끝!</p>
       <div class="role-row">
         <button onclick="startHost()">🏠 방 만들기</button>
-        <button class="secondary" onclick="startGuestScreen()">🔑 방 코드로 참가</button>
+        <button class="secondary" onclick="startGuestScreen()">🔑 코드로 참가</button>
       </div>
     </div>`;
     root.innerHTML=html; return;
@@ -368,10 +327,9 @@ function render(){
 
   if(myRole==='guest-pending'){
     html += `<div class="card">
-      <h3>방 코드로 참가하기</h3>
-      <p>방장에게 받은 코드를 입력하세요 (예: BM7X2K)</p>
-      <input type="text" id="roomInput" maxlength="8" placeholder="방 코드 입력">
-      <div class="btn-row" style="margin-top:10px;"><button onclick="joinRoomCode(document.getElementById('roomInput').value)">참가하기</button></div>
+      <h3>방 코드로 참가</h3>
+      <input type="text" id="roomInput" maxlength="8" placeholder="방 코드 (예: BM7X2K)">
+      <div class="btn-row" style="margin-top:10px;"><button onclick="joinRoomCode(document.getElementById('roomInput').value)">접속하기</button></div>
     </div>`;
     root.innerHTML=html; return;
   }
@@ -387,20 +345,16 @@ function render(){
   if(myRole==='host'){
     const inviteLink = window.location.href.split('?')[0] + '?room=' + (roomCode||'');
     html += `<div class="card">
-      <h3>친구 초대하기</h3>
-      <p>아래 <b>링크</b>를 카톡으로 보내면 친구가 누르자마자 자동 참가돼요:</p>
-      <textarea id="inviteLinkBox" readonly onclick="this.select()" style="height:44px;">${inviteLink}</textarea>
-      <div class="btn-row"><button class="secondary" onclick="copyText('inviteLinkBox')">📋 링크 복사</button></div>
-      <p style="margin-top:10px;">또는 방 코드만 알려줘도 돼요:</p>
-      <div class="room-code" id="roomCodeBox">${roomCode||'생성 중...'}</div>
-      <div class="btn-row"><button class="secondary" onclick="copyText('roomCodeBox')">📋 코드만 복사</button></div>
-      <div style="margin-top:12px;">
-        ${[1,2].map(slot=>`<div class="slot-box"><span>${game.players[slot].name}</span><span>${game.players[slot].connected?'✅ 접속됨':'⏳ 대기중'}</span></div>`).join('')}
+      <h3>친구 초대</h3>
+      <div class="room-code">${roomCode||'생성중'}</div>
+      <p style="font-size:0.7rem;margin:4px 0;">아래 링크를 친구에게 공유하세요:</p>
+      <input type="text" value="${inviteLink}" readonly onclick="this.select()">
+      <div style="margin-top:8px;">
+        ${[1,2].map(slot=>`<div class="slot-box"><span>${game.players[slot].name}</span><span>${game.players[slot].connected?'✅ 접속 완료':'⏳ 접속 대기...'}</span></div>`).join('')}
       </div>
     </div>`;
   }
 
-  // ---- board ----
   html += `<div class="board-wrap"><div class="board">`;
   board.forEach((t,i)=>{
     let pos;
@@ -423,20 +377,20 @@ function render(){
       ${here.length ? `<div class="tokens">${here.map(p=>`<div class="token" style="background:${p.color}"></div>`).join('')}</div>` : ''}
     </div>`;
   });
-  html += `<div class="center-info"><div class="compass">🧭</div><div class="turn-label">${game.phase==="gameover"?"게임 종료":game.players[game.current].name+"의 차례"}</div></div>`;
+  html += `<div class="center-info"><div class="compass">🧭</div><div class="turn-label">${game.phase==="gameover"?"종료":game.players[game.current].name+" 차례"}</div></div>`;
   html += `</div></div>`;
 
   html += `<div class="panel">`;
   html += `<div class="players">${game.players.map((p,i)=>{
     const myProps = game.tileState.map((ts,idx)=> ts&&ts.owner===i? board[idx].name:null).filter(Boolean);
     return `<div class="player-card ${i===game.current&&game.phase!=='gameover'?'active':''} ${p.bankrupt?'bankrupt':''}">
-      <div class="player-name"><span class="dot" style="background:${p.color}"></span>${p.name}${p.bankrupt?' (파산)':''}${!p.connected?' · 대기중':''}${i===myIndex?' (나)':''}</div>
+      <div class="player-name"><span class="dot" style="background:${p.color}"></span>${p.name}${p.bankrupt?'(파산)':''}${i===myIndex?' (나)':''}</div>
       <div class="player-cash">${p.cash.toLocaleString()}원</div>
-      <div class="player-props">보유: ${myProps.length?myProps.join(", "):"-"} ${p.escapeCards?`· 탈출카드 x${p.escapeCards}`:''}</div>
+      <div class="player-props">보유:${myProps.length}개</div>
     </div>`;
   }).join('')}</div>`;
 
-  html += `<div class="log">${game.log.slice(-40).map(l=>`<div>${l}</div>`).join('')}</div>`;
+  html += `<div class="log">${game.log.slice(-30).map(l=>`<div>${l}</div>`).join('')}</div>`;
 
   html += `<div class="dice-row">
     <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[0]??'-')}</div>
@@ -446,54 +400,48 @@ function render(){
   html += `<div class="btn-row">`;
   if(game.phase==="gameover"){
     if(myRole==='host') html += `<button onclick="applyAction(0,'resetGame',[])">🔄 새 게임 시작</button>`;
-    else html += `<button disabled>게임 종료</button>`;
   } else if(!isMyTurn()){
-    html += `<button disabled>${game.players[game.current].name}의 차례를 기다리는 중...</button>`;
+    html += `<button disabled>${game.players[game.current].name} 순서 대기 중...</button>`;
   } else if(game.phase==="await-turn-start"){
-    html += `<button onclick="act('beginTurn')">${game.players[myIndex].name} 턴 시작</button>`;
+    html += `<button onclick="act('beginTurn')">▶️ 턴 시작하기</button>`;
   } else if(game.phase==="island"){
     const me=game.players[myIndex];
-    html += `<button onclick="act('payIslandFee')" ${me.cash<100000?'disabled':''}>💸 100,000원 내고 탈출</button>`;
-    if(me.escapeCards>0) html += `<button onclick="act('useEscapeCard')">🎫 탈출카드 사용</button>`;
-    html += `<button class="secondary" onclick="act('stayIsland')">🏝️ 그냥 쉬기</button>`;
+    html += `<button onclick="act('payIslandFee')" ${me.cash<100000?'disabled':''}>💸 10만 원 탈출</button>`;
+    if(me.escapeCards>0) html += `<button onclick="act('useEscapeCard')">🎫 탈출카드</button>`;
+    html += `<button class="secondary" onclick="act('stayIsland')">🏝️ 쉬기</button>`;
   } else if(game.phase==="await-roll"){
     html += `<button onclick="act('rollDice')">🎲 주사위 굴리기</button>`;
-  } else {
-    html += `<button disabled>진행 중...</button>`;
   }
-  html += `</div>`;
-  if(myRole==='host' && game.phase!=='gameover') html += `<div class="btn-row" style="margin-top:8px;"><button class="secondary" onclick="applyAction(0,'resetGame',[])">🔄 게임 초기화</button></div>`;
-  html += `</div>`;
+  html += `</div></div>`;
 
   if(game.modal){
     const m=game.modal;
     html += `<div class="modal-overlay"><div class="modal">`;
     if(m.kind==='buy'){
       const tile=board[m.tileIdx];
-      html += `<h2>🏙️ ${tile.name}</h2><p>이 도시는 주인이 없습니다.<br>매입가: <b>${tile.price.toLocaleString()}원</b></p>`;
+      html += `<h2>🏙️ ${tile.name}</h2><p>매입가: <b>${tile.price.toLocaleString()}원</b></p>`;
       if(isMyTurn()){
         const me=game.players[myIndex];
-        html += `<div class="btn-row"><button class="secondary" onclick="act('skipBuy')">🚶 건너뛰기 (구매 안 함)</button><button onclick="act('buyTile',[${m.tileIdx}])" ${me.cash<tile.price?'disabled':''}>💰 매입하기</button></div>`;
-      } else html += `<p><i>${game.players[game.current].name}님이 선택 중입니다...</i></p>`;
+        html += `<div class="btn-row"><button class="secondary" onclick="act('skipBuy')">통과</button><button onclick="act('buyTile',[${m.tileIdx}])" ${me.cash<tile.price?'disabled':''}>매입</button></div>`;
+      } else html += `<p><i>${game.players[game.current].name}님 선택 중...</i></p>`;
     } else if(m.kind==='upgrade'){
       const tile=board[m.tileIdx]; const ts=game.tileState[m.tileIdx];
       const costs=[tile.price*0.6,tile.price*0.8,tile.price*1.2]; const lvlNames=["빈 땅","별장","빌딩","호텔"];
       const nextCost = ts.level<3 ? Math.round(costs[ts.level]) : null;
-      html += `<h2>🏗️ ${tile.name} (내 소유)</h2><p>현재 단계: ${lvlNames[ts.level]}</p>`;
-      html += ts.level<3 ? `<div class="upg-row"><span>다음: ${lvlNames[ts.level+1]}</span><span>${nextCost.toLocaleString()}원</span></div>` : `<p>이미 최고 단계입니다.</p>`;
+      html += `<h2>🏗️ ${tile.name}</h2><p>현재: ${lvlNames[ts.level]}</p>`;
       if(isMyTurn()){
         const me=game.players[myIndex];
-        html += `<div class="btn-row"><button class="secondary" onclick="act('closeUpgrade')">넘어가기</button>${ts.level<3?`<button onclick="act('upgradeTile',[${m.tileIdx}])" ${me.cash<nextCost?'disabled':''}>업그레이드</button>`:''}</div>`;
-      } else html += `<p><i>${game.players[game.current].name}님이 선택 중입니다...</i></p>`;
+        html += `<div class="btn-row"><button class="secondary" onclick="act('closeUpgrade')">통과</button>${ts.level<3?`<button onclick="act('upgradeTile',[${m.tileIdx}])" ${me.cash<nextCost?'disabled':''}>업그레이드 (+${nextCost/10000}만)</button>`:''}</div>`;
+      } else html += `<p><i>${game.players[game.current].name}님 선택 중...</i></p>`;
     } else if(m.kind==='info'){
       html += `<h2>${m.title}</h2><p>${m.text}</p>`;
-      html += isMyTurn() ? `<div class="btn-row"><button onclick="act('closeInfo')">확인</button></div>` : `<p><i>${game.players[game.current].name}님을 기다리는 중...</i></p>`;
+      html += isMyTurn() ? `<div class="btn-row"><button onclick="act('closeInfo')">확인</button></div>` : `<p><i>대기 중...</i></p>`;
     } else if(m.kind==='worldtour'){
-      html += `<h2>✈️ 세계여행</h2><p>여행 경비 100,000원을 내고 원하는 도시로 이동합니다.</p>`;
+      html += `<h2>✈️ 세계여행</h2><p>이동할 도시 선택 (비용 10만원)</p>`;
       if(isMyTurn()){
         const me=game.players[myIndex];
-        html += `<div class="dest-grid">${board.map((t,i)=> t.type==='city' ? `<button class="dest-btn" onclick="act('chooseWorldtour',[${i}])" ${me.cash<100000?'disabled':''}>${t.name}<br><small>${t.price.toLocaleString()}원</small></button>` : '').join('')}</div>`;
-      } else html += `<p><i>${game.players[game.current].name}님이 목적지를 고르는 중...</i></p>`;
+        html += `<div class="dest-grid">${board.map((t,i)=> t.type==='city' ? `<button class="dest-btn" onclick="act('chooseWorldtour',[${i}])" ${me.cash<100000?'disabled':''}>${t.name}</button>` : '').join('')}</div>`;
+      } else html += `<p><i>목적지 선택 중...</i></p>`;
     }
     html += `</div></div>`;
   }
@@ -501,23 +449,21 @@ function render(){
   root.innerHTML = html;
 }
 
-setInterval(()=>{ if(game && game.rolling) render(); }, 90);
+setInterval(()=>{ if(game && game.rolling) render(); }, 100);
 
-// auto-join if a room code is present in the URL (?room=CODE) — lets people join with one click
 (function autoJoinFromUrl(){
-  try{
-    const params = new URLSearchParams(window.location.search);
-    const roomParam = params.get('room');
-    if(roomParam){
-      myRole='guest'; isHost=false;
-      guestStatus="링크로 자동 접속하는 중...";
-      render();
-      // small delay to let the Trystero module finish loading
-      setTimeout(()=>{ initTrystero(roomParam.trim().toUpperCase()); }, 400);
-      return;
-    }
-  }catch(e){}
-  render();
+  setTimeout(()=>{
+    try{
+      const params = new URLSearchParams(window.location.search);
+      const roomParam = params.get('room');
+      if(roomParam){
+        myRole='guest'; isHost=false; guestStatus="링크로 자동 연결 중..."; render();
+        initTrystero(roomParam.trim().toUpperCase());
+        return;
+      }
+    }catch(e){}
+    render();
+  }, 300);
 })();
 </script>
 </body>
