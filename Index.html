@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세계여행 부루마블 (방 코드 접속)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script type="module">
+  import { joinRoom } from "https://esm.sh/trystero@0.21.2/torrent";
+  window.__trysteroJoinRoom = joinRoom;
+</script>
+<style>
+  :root{
+    --navy:#16324F; --navy-deep:#0E2338; --cream:#F4EBD9; --gold:#D3A429; --rust:#B5502D;
+    --g0:#E4B7A0; --g1:#C97B63; --g2:#7FA99B; --g3:#5C7AA0; --g4:#9C6B98;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:radial-gradient(ellipse at top, #1d3d5f 0%, var(--navy-deep) 70%); color:var(--cream); font-family:'Space Mono',monospace; min-height:100vh; padding:14px;}
+  h1{ font-family:'Playfair Display',serif; font-weight:900; text-align:center; font-size:1.4rem; color:var(--gold); margin:4px 0 2px;}
+  .subtitle{ text-align:center; font-size:0.68rem; letter-spacing:2px; color:var(--cream); opacity:0.6; margin-bottom:12px; text-transform:uppercase;}
+  .wrap{ max-width:720px; margin:0 auto; }
+  .card{ background:#122a45; border:1.5px dashed var(--gold); border-radius:8px; padding:16px; margin-bottom:12px; font-size:0.85rem; line-height:1.6; text-align:center;}
+  .card h3{ margin:0 0 8px; color:var(--gold); font-family:'Playfair Display',serif; font-size:1.1rem;}
+  .room-code{ font-size:1.8rem; font-weight:700; letter-spacing:3px; color:var(--gold); background:#0E2338; border-radius:8px; padding:12px; margin:10px 0; }
+  input[type=text]{ width:100%; background:#0E2368; background:#0E2338; color:var(--cream); border:1.5px solid var(--gold); border-radius:6px; padding:12px; font-family:'Space Mono',monospace; font-size:1.1rem; text-align:center; letter-spacing:2px; text-transform:uppercase;}
+  .role-row{ display:flex; gap:10px; justify-content:center; margin-bottom:14px; flex-wrap:wrap;}
+  .slot-box{ background:#0E2338; border-radius:6px; padding:8px 10px; margin-bottom:6px; font-size:0.78rem; display:flex; justify-content:space-between;}
+  .status{ font-size:0.78rem; opacity:0.85;}
+  .status.ok{ color:#8fd18f; }
+  .err{ border-color:#C1443B !important; }
+  .board-wrap{ background:var(--navy); border:2px solid var(--gold); border-radius:10px; padding:8px; box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+  .board{ display:grid; grid-template-columns:repeat(9,1fr); grid-template-rows:repeat(9,1fr); gap:3px; aspect-ratio:1/1;}
+  .center-info{ grid-column:2/9; grid-row:2/9; background:linear-gradient(135deg,#1a3a5c,#122a45); border:1px dashed rgba(212,164,41,0.4); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:8px; gap:4px;}
+  .center-info .compass{ font-size:2.2rem; }
+  .center-info .turn-label{ font-family:'Playfair Display',serif; font-weight:700; font-size:0.95rem; color:var(--gold);}
+  .tile{ position:relative; border-radius:4px; background:#EDE2CB; color:#2a2a2a; font-size:0.5rem; line-height:1.1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:1px; overflow:hidden; border:1px solid rgba(0,0,0,0.15);}
+  .tile .name{font-weight:700;font-size:0.52rem;} .tile .price{font-size:0.42rem;opacity:0.75;}
+  .tile.corner{background:var(--gold);color:var(--navy-deep);font-size:0.55rem;font-weight:700;}
+  .tile.chance{background:#F0DDA0;} .tile.tax{background:#D9C4B0;}
+  .tile.g0{background:var(--g0);} .tile.g1{background:var(--g1);color:#fff;} .tile.g2{background:var(--g2);color:#0e2338;}
+  .tile.g3{background:var(--g3);color:#fff;} .tile.g4{background:var(--g4);color:#fff;}
+  .stamp{position:absolute;top:1px;right:1px;width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(0,0,0,0.5);}
+  .lvl{position:absolute;bottom:1px;left:1px;font-size:0.4rem;font-weight:700;}
+  .tokens{position:absolute;bottom:1px;display:flex;gap:1px;}
+  .token{width:7px;height:7px;border-radius:50%;border:1px solid rgba(0,0,0,0.4);}
+  .panel{ background:var(--navy); border:2px solid var(--gold); border-radius:10px; padding:14px; margin-top:14px;}
+  .players{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .player-card{flex:1;min-width:140px;background:#122a45;border-radius:8px;padding:8px 10px;border:2px solid transparent;}
+  .player-card.active{border-color:var(--gold);box-shadow:0 0 12px rgba(212,164,41,0.4);}
+  .player-card.bankrupt{opacity:0.4;}
+  .player-name{display:flex;align-items:center;gap:6px;font-weight:700;font-size:0.85rem;margin-bottom:4px;}
+  .dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+  .player-cash{font-size:0.85rem;color:var(--gold);}
+  .player-props{font-size:0.65rem;opacity:0.7;margin-top:2px;}
+  .log{background:#0E2338;border-radius:8px;padding:8px 10px;height:100px;overflow-y:auto;font-size:0.7rem;line-height:1.5;margin-bottom:12px;}
+  .log div{margin-bottom:2px;opacity:0.9;}
+  .dice-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px;}
+  .die{width:44px;height:44px;background:var(--cream);color:var(--navy-deep);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;box-shadow:0 3px 0 rgba(0,0,0,0.3);}
+  .die.rolling{animation:diceSpin 0.16s linear infinite;background:var(--gold);}
+  @keyframes diceSpin{0%{transform:rotate(0deg) scale(1);}30%{transform:rotate(18deg) scale(1.12);}60%{transform:rotate(-16deg) scale(0.95);}100%{transform:rotate(0deg) scale(1);}}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+  button{ font-family:'Space Mono',monospace; background:var(--gold); color:var(--navy-deep); border:none; border-radius:6px; padding:10px 16px; font-weight:700; font-size:0.82rem; cursor:pointer; box-shadow:0 3px 0 #a5791c;}
+  button:active{transform:translateY(2px);box-shadow:none;}
+  button.secondary{ background:transparent; color:var(--cream); border:1.5px solid var(--cream); box-shadow:none;}
+  button:disabled{opacity:0.35;cursor:default;box-shadow:none;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .modal{background:var(--cream);color:var(--navy-deep);border-radius:12px;padding:20px;max-width:380px;width:100%;max-height:80vh;overflow-y:auto;border:3px solid var(--gold);}
+  .modal h2{font-family:'Playfair Display',serif;margin:0 0 10px;font-size:1.15rem;color:var(--rust);}
+  .modal p{font-size:0.85rem;line-height:1.5;margin:0 0 14px;}
+  .modal .btn-row{justify-content:flex-end;}
+  .dest-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;}
+  .dest-btn{background:#fff;border:1.5px solid var(--navy);border-radius:6px;padding:8px;font-size:0.7rem;text-align:left;cursor:pointer;}
+  .upg-row{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:0.75rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🌍 세계여행 부루마블</h1>
+<div class="subtitle">방 코드로 바로 접속</div>
+<div id="root"></div>
+</div>
+
+<script>
+// ================= STATIC DATA =================
+const board = [
+  {name:"출발",type:"start"},{name:"서울",type:"city",price:120000,group:0},{name:"도쿄",type:"city",price:140000,group:0},
+  {name:"황금열쇠",type:"chance"},{name:"베이징",type:"city",price:160000,group:0},{name:"방콕",type:"city",price:180000,group:0},
+  {name:"세금",type:"tax"},{name:"뉴델리",type:"city",price:200000,group:0},{name:"무인도",type:"island"},
+  {name:"카이로",type:"city",price:220000,group:1},{name:"나이로비",type:"city",price:240000,group:1},{name:"황금열쇠",type:"chance"},
+  {name:"이스탄불",type:"city",price:260000,group:1},{name:"파리",type:"city",price:300000,group:2},{name:"로마",type:"city",price:320000,group:2},
+  {name:"세금",type:"tax"},{name:"세계여행",type:"worldtour"},{name:"마드리드",type:"city",price:340000,group:2},
+  {name:"베를린",type:"city",price:360000,group:2},{name:"황금열쇠",type:"chance"},{name:"런던",type:"city",price:400000,group:3},
+  {name:"모스크바",type:"city",price:420000,group:3},{name:"세금",type:"tax"},{name:"스톡홀름",type:"city",price:440000,group:3},
+  {name:"보너스",type:"bonus"},{name:"취리히",type:"city",price:460000,group:3},{name:"뉴욕",type:"city",price:500000,group:4},
+  {name:"황금열쇠",type:"chance"},{name:"로스앤젤레스",type:"city",price:540000,group:4},{name:"시카고",type:"city",price:580000,group:4},
+  {name:"세금",type:"tax"},{name:"토론토",type:"city",price:620000,group:4},
+];
+const N = board.length;
+const groupColor = ["g0","g1","g2","g3","g4"];
+const PLAYER_COLORS = ["#C1443B","#3B6EA8","#D3A429"];
+const CHANCE_CARDS = [
+  {text:"세계여행 복권 당첨! +150,000원", effect:(p)=>{p.cash+=150000;}},
+  {text:"세관 조사에 걸렸습니다... -100,000원", effect:(p)=>{p.cash-=100000;}},
+  {text:"길을 잃어 무인도로 표류합니다.", effect:(p)=>{p.position=8;p.islandTurns=1;}},
+  {text:"출발점으로 이동, 통행료 200,000원을 받습니다.", effect:(p)=>{p.position=0;p.cash+=200000;}},
+  {text:"여행 브이로그 대박! 다른 모두에게 50,000원씩 받습니다.", effect:(p,players)=>{players.forEach(o=>{if(o!==p&&!o.bankrupt){o.cash-=50000;p.cash+=50000;}});}},
+  {text:"수하물 파손 배상! 다른 모두에게 50,000원씩 지불합니다.", effect:(p,players)=>{players.forEach(o=>{if(o!==p&&!o.bankrupt){o.cash+=50000;p.cash-=50000;}});}},
+  {text:"무인도 탈출카드를 1장 획득했습니다.", effect:(p)=>{p.escapeCards+=1;}},
+  {text:"여행자 보험 만기 지급! +200,000원", effect:(p)=>{p.cash+=200000;}},
+  {text:"공항 수속 지연... 다음 턴을 쉽니다.", effect:(p)=>{p.islandTurns=Math.max(p.islandTurns,1);}},
+  {text:"기념품 대박 세일! +80,000원", effect:(p)=>{p.cash+=80000;}},
+];
+const tileLabelMap = {start:"🚀 출발",island:"🏝️ 무인도",worldtour:"✈️ 세계여행",bonus:"💰 보너스",chance:"🗝️ 황금열쇠",tax:"🧾 세금"};
+const rand6 = ()=>1+Math.floor(Math.random()*6);
+const cloneGame = (g)=>JSON.parse(JSON.stringify(g));
+
+function freshGame(){
+  return {
+    players:[0,1,2].map(i=>({idx:i,name:"플레이어 "+(i+1),color:PLAYER_COLORS[i],cash:1000000,position:0,islandTurns:0,escapeCards:0,bankrupt:false,connected:i===0})),
+    tileState: board.map(t=> t.type==="city" ? {owner:null,level:0} : null),
+    current:0, log:["🧳 세계여행 부루마블이 시작되었습니다."], phase:"await-turn-start",
+    dice:[null,null], doublesStreak:0, modal:null, rolling:false,
+  };
+}
+
+// ================= PURE MUTATORS =================
+function payToll(g, playerIdx, tileIdx){
+  const ts=g.tileState[tileIdx]; const owner=g.players[ts.owner]; const p=g.players[playerIdx]; const tile=board[tileIdx];
+  let toll;
+  if(ts.level===0){
+    const ownsAll = board.every((t,i)=> t.group!==tile.group || (g.tileState[i]&&g.tileState[i].owner===ts.owner));
+    toll = Math.round(tile.price*0.2)*(ownsAll?2:1);
+  } else if(ts.level===1) toll=Math.round(tile.price*0.5);
+  else if(ts.level===2) toll=Math.round(tile.price*1.0);
+  else toll=Math.round(tile.price*2.0);
+  p.cash-=toll; owner.cash+=toll;
+  g.log.push(`🏨 ${p.name} → ${owner.name}에게 ${tile.name} 통행료 ${toll.toLocaleString()}원 지불`);
+}
+function checkBankrupt(g, playerIdx){
+  const p=g.players[playerIdx];
+  if(p.cash<0 && !p.bankrupt){ p.bankrupt=true;
+    g.tileState.forEach(ts=>{ if(ts&&ts.owner===playerIdx){ts.owner=null;ts.level=0;} });
+    g.log.push(`💀 ${p.name} 파산했습니다! 보유 부동산이 반환됩니다.`);
+  }
+}
+function nextPlayerMut(g){
+  g.doublesStreak=0; let tries=0;
+  do{ g.current=(g.current+1)%3; tries++; } while((g.players[g.current].bankrupt || !g.players[g.current].connected) && tries<6);
+  const aliveCount=g.players.filter(p=>!p.bankrupt).length;
+  if(aliveCount<=1){ g.phase="gameover"; return; }
+  g.phase="await-turn-start";
+}
+function afterResolveMut(g){
+  g.modal=null;
+  const isDouble = g.dice[0]!==null && g.dice[0]===g.dice[1];
+  if(isDouble){ g.log.push(`↻ 더블! ${g.players[g.current].name}가 한 번 더 굴립니다.`); g.phase="await-roll"; }
+  else nextPlayerMut(g);
+}
+function resolveTileMut(g, playerIdx){
+  const p=g.players[playerIdx]; const tile=board[p.position];
+  if(tile.type==="city"){
+    const ts=g.tileState[p.position];
+    if(ts.owner===null){ g.modal={kind:"buy",tileIdx:p.position}; g.phase="modal"; }
+    else if(ts.owner===playerIdx){ g.modal={kind:"upgrade",tileIdx:p.position}; g.phase="modal"; }
+    else { payToll(g,playerIdx,p.position); checkBankrupt(g,playerIdx); afterResolveMut(g); }
+  } else if(tile.type==="chance"){
+    const card=CHANCE_CARDS[Math.floor(Math.random()*CHANCE_CARDS.length)];
+    card.effect(p,g.players); g.log.push(`🗝️ 황금열쇠: ${card.text}`); checkBankrupt(g,playerIdx);
+    g.modal={kind:"info",title:"황금열쇠 카드",text:card.text}; g.phase="modal";
+  } else if(tile.type==="tax"){
+    p.cash-=100000; g.log.push(`🧾 ${p.name}, 세금 100,000원을 납부했습니다.`); checkBankrupt(g,playerIdx); afterResolveMut(g);
+  } else if(tile.type==="island"){
+    p.islandTurns=1; g.log.push(`🏝️ ${p.name}, 무인도에 도착했습니다. 다음 턴을 쉽니다.`); afterResolveMut(g);
+  } else if(tile.type==="bonus"){
+    p.cash+=150000; g.log.push(`💰 ${p.name}, 사회복지기금 150,000원을 받았습니다.`); afterResolveMut(g);
+  } else if(tile.type==="worldtour"){
+    g.modal={kind:"worldtour"}; g.phase="modal";
+  } else afterResolveMut(g);
+}
+
+// ================= NETWORK STATE (Trystero) =================
+let myRole=null;        // 'host' | 'guest-pending' | 'guest'
+let myIndex=null;
+let game=null;
+let room=null;
+let sendMsg=null, getMsg=null;
+let isHost=false;
+let assignedSlots={};   // host only: peerId -> slot
+let nextGuestSlot=1;
+let errorMsg=null;
+let roomCode=null;
+let guestStatus=null;
+const APP_ID = "kr-world-tour-blue-marble-v1";
+
+function setError(msg){ errorMsg=msg; render(); }
+function genRoomCode(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s="BM"; for(let i=0;i<4;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+function copyText(elId){
+  const el=document.getElementById(elId); if(!el) return;
+  el.focus(); if(el.select) el.select();
+  try{ navigator.clipboard.writeText(el.value||el.textContent).catch(()=>{ document.execCommand('copy'); }); }
+  catch(e){ try{ document.execCommand('copy'); }catch(e2){} }
+}
+
+function handleMsg(data, peerId){
+  if(!data || !data.t) return;
+  if(data.t==='assign'){ myIndex=data.slot; guestStatus=null; render(); }
+  else if(data.t==='state'){ game=data.g; guestStatus=null; render(); }
+  else if(data.t==='action'){
+    if(isHost){ const slot=assignedSlots[peerId]; if(slot!=null) applyAction(slot, data.name, data.args||[]); }
+  }
+}
+
+function initTrystero(code){
+  if(!window.__trysteroJoinRoom){
+    setError("연결 라이브러리를 불러오는 중이에요. 5초 정도 기다렸다가 다시 눌러주세요.");
+    if(myRole==='guest') myRole='guest-pending';
+    render();
+    return;
+  }
+  try{
+    room = window.__trysteroJoinRoom({appId: APP_ID}, code);
+    const [send, get] = room.makeAction('msg');
+    sendMsg = send; getMsg = get;
+    getMsg((data, peerId)=> handleMsg(data, peerId));
+    room.onPeerJoin(peerId=>{
+      if(isHost){
+        if(nextGuestSlot>2) return;
+        const slot = nextGuestSlot; nextGuestSlot++;
+        assignedSlots[peerId]=slot;
+        sendMsg({t:'assign', slot}, peerId);
+        const g=cloneGame(game); g.players[slot].connected=true; g.log.push(`✅ ${g.players[slot].name} 접속 완료!`); commitHost(g);
+      }
+    });
+    room.onPeerLeave(peerId=>{
+      if(isHost && assignedSlots[peerId]!=null){
+        const slot=assignedSlots[peerId];
+        const g=cloneGame(game); if(g.players[slot]) g.players[slot].connected=false; commitHost(g);
+      } else if(!isHost){
+        setError("호스트와 연결이 끊어졌어요.");
+      }
+    });
+    if(!isHost){ guestStatus="방을 찾는 중..."; render(); }
+  }catch(e){
+    setError("연결 중 오류가 발생했어요: " + (e && e.message ? e.message : e));
+    if(myRole==='guest') myRole='guest-pending';
+    render();
+  }
+}
+
+function broadcastState(){ if(sendMsg){ try{ sendMsg({t:'state', g:game}); }catch(e){} } }
+function commitHost(g){ game=g; render(); broadcastState(); }
+
+function startHost(){
+  errorMsg=null;
+  myRole='host'; myIndex=0; isHost=true; game=freshGame();
+  roomCode=genRoomCode();
+  render();
+  initTrystero(roomCode);
+}
+
+function startGuestScreen(){ myRole='guest-pending'; errorMsg=null; render(); }
+
+function joinRoomCode(code){
+  errorMsg=null;
+  if(!code || !code.trim()){ setError("방 코드를 입력해주세요."); return; }
+  const target = code.trim().toUpperCase();
+  myRole='guest'; isHost=false;
+  guestStatus="연결 준비 중...";
+  render();
+  initTrystero(target);
+}
+
+// ================= ACTION HANDLING (host-authoritative) =================
+function applyAction(actorIdx, name, args){
+  if(myRole!=='host') return;
+  if(name==='resetGame'){
+    const g=freshGame();
+    [1,2].forEach(s=>{ if(game.players[s]) g.players[s].connected=game.players[s].connected; });
+    commitHost(g); return;
+  }
+  if(actorIdx !== game.current) return;
+  const g = cloneGame(game);
+  if(name==='beginTurn'){
+    const p=g.players[g.current];
+    if(p.bankrupt){ nextPlayerMut(g); } else { g.phase = p.islandTurns>0 ? "island" : "await-roll"; }
+    commitHost(g);
+  } else if(name==='payIslandFee'){
+    const p=g.players[g.current]; p.cash-=100000; p.islandTurns=0;
+    g.log.push(`💸 ${p.name}, 100,000원을 내고 무인도를 탈출했습니다.`);
+    checkBankrupt(g,g.current); g.phase="await-roll"; commitHost(g);
+  } else if(name==='useEscapeCard'){
+    const p=g.players[g.current]; p.escapeCards-=1; p.islandTurns=0;
+    g.log.push(`🎫 ${p.name}, 탈출카드를 사용해 무인도를 벗어났습니다.`); g.phase="await-roll"; commitHost(g);
+  } else if(name==='stayIsland'){
+    const p=g.players[g.current]; p.islandTurns-=1;
+    g.log.push(`🏝️ ${p.name}, 무인도에서 휴식합니다. (남은 턴: ${p.islandTurns})`);
+    nextPlayerMut(g); commitHost(g);
+  } else if(name==='rollDice'){
+    if(g.phase!=='await-roll') return;
+    g.rolling=true; commitHost(g);
+    setTimeout(()=>{
+      const g2=cloneGame(game); const playerIdx=g2.current; const p=g2.players[playerIdx];
+      const d1=rand6(), d2=rand6(); g2.dice=[d1,d2];
+      const isDouble=d1===d2; g2.doublesStreak = isDouble? g2.doublesStreak+1 : 0; g2.rolling=false;
+      if(g2.doublesStreak>=3){
+        g2.log.push(`🎲 ${p.name} 더블 3연속! 무인도로 이동합니다.`);
+        p.position=8; p.islandTurns=1; g2.doublesStreak=0;
+        nextPlayerMut(g2); commitHost(g2); return;
+      }
+      const steps=d1+d2; const before=p.position; const after=(before+steps)%N;
+      if(after<before){ p.cash+=200000; g2.log.push(`🎉 ${p.name}, 출발점을 지나 200,000원을 받았습니다.`); }
+      p.position=after;
+      g2.log.push(`🎲 ${p.name}: 주사위 ${d1}+${d2}=${steps} → ${board[after].name} 도착${isDouble?" (더블!)":""}`);
+      resolveTileMut(g2, playerIdx);
+      commitHost(g2);
+    }, 700);
+  } else if(name==='buyTile'){
+    const p=g.players[g.current]; const tile=board[args[0]];
+    if(p.cash>=tile.price){ p.cash-=tile.price; g.tileState[args[0]]={owner:g.current,level:0};
+      g.log.push(`🏷️ ${p.name}, ${tile.name}을(를) ${tile.price.toLocaleString()}원에 매입했습니다.`); }
+    afterResolveMut(g); commitHost(g);
+  } else if(name==='skipBuy'){
+    g.log.push(`🚶 ${g.players[g.current].name}, 구매를 건너뛰었습니다.`);
+    afterResolveMut(g); commitHost(g);
+  } else if(name==='upgradeTile'){
+    const p=g.players[g.current]; const tile=board[args[0]]; const ts=g.tileState[args[0]];
+    const costs=[tile.price*0.6,tile.price*0.8,tile.price*1.2]; const cost=Math.round(costs[ts.level]);
+    if(ts.level<3 && p.cash>=cost){ p.cash-=cost; ts.level+=1; g.log.push(`🏗️ ${p.name}, ${tile.name}을(를) 업그레이드했습니다.`); }
+    commitHost(g);
+  } else if(name==='closeUpgrade' || name==='closeInfo'){
+    afterResolveMut(g); commitHost(g);
+  } else if(name==='chooseWorldtour'){
+    const p=g.players[g.current]; p.cash-=100000; p.position=args[0];
+    g.log.push(`✈️ ${p.name}, 여행 경비 100,000원을 내고 ${board[args[0]].name}(으)로 이동했습니다.`);
+    checkBankrupt(g,g.current); resolveTileMut(g,g.current); commitHost(g);
+  }
+}
+
+function isMyTurn(){ return myIndex!==null && game && myIndex===game.current; }
+function act(name, args){
+  if(!isMyTurn()) return;
+  if(myRole==='host'){ applyAction(myIndex, name, args||[]); }
+  else if(sendMsg){ try{ sendMsg({t:'action', name, args:args||[]}); }catch(e){} }
+}
+
+// ================= UI =================
+function render(){
+  const root=document.getElementById('root');
+  const errBanner = errorMsg ? `<div class="card err"><b style="color:#ff8a80;">⚠️ ${errorMsg}</b></div>` : '';
+  let html=errBanner;
+
+  if(myRole===null){
+    html += `<div class="card">
+      <h3>어떻게 참가할까요?</h3>
+      <p>한 명이 <b>방을 만들고</b>, 나머지는 그 사람이 알려주는 짧은 <b>방 코드</b>를 입력하면 바로 연결돼요. 계정이나 로그인은 필요 없어요.</p>
+      <div class="role-row">
+        <button onclick="startHost()">🏠 방 만들기</button>
+        <button class="secondary" onclick="startGuestScreen()">🔑 방 코드로 참가</button>
+      </div>
+    </div>`;
+    root.innerHTML=html; return;
+  }
+
+  if(myRole==='guest-pending'){
+    html += `<div class="card">
+      <h3>방 코드로 참가하기</h3>
+      <p>방장에게 받은 코드를 입력하세요 (예: BM7X2K)</p>
+      <input type="text" id="roomInput" maxlength="8" placeholder="방 코드 입력">
+      <div class="btn-row" style="margin-top:10px;"><button onclick="joinRoomCode(document.getElementById('roomInput').value)">참가하기</button></div>
+    </div>`;
+    root.innerHTML=html; return;
+  }
+
+  if(myRole==='guest' && !game){
+    html += `<div class="card">
+      <h3>연결 중...</h3>
+      <p class="status">⏳ ${guestStatus||'처리 중...'}</p>
+    </div>`;
+    root.innerHTML=html; return;
+  }
+
+  if(myRole==='host'){
+    const inviteLink = window.location.href.split('?')[0] + '?room=' + (roomCode||'');
+    html += `<div class="card">
+      <h3>친구 초대하기</h3>
+      <p>아래 <b>링크</b>를 카톡으로 보내면 친구가 누르자마자 자동 참가돼요:</p>
+      <textarea id="inviteLinkBox" readonly onclick="this.select()" style="height:44px;">${inviteLink}</textarea>
+      <div class="btn-row"><button class="secondary" onclick="copyText('inviteLinkBox')">📋 링크 복사</button></div>
+      <p style="margin-top:10px;">또는 방 코드만 알려줘도 돼요:</p>
+      <div class="room-code" id="roomCodeBox">${roomCode||'생성 중...'}</div>
+      <div class="btn-row"><button class="secondary" onclick="copyText('roomCodeBox')">📋 코드만 복사</button></div>
+      <div style="margin-top:12px;">
+        ${[1,2].map(slot=>`<div class="slot-box"><span>${game.players[slot].name}</span><span>${game.players[slot].connected?'✅ 접속됨':'⏳ 대기중'}</span></div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // ---- board ----
+  html += `<div class="board-wrap"><div class="board">`;
+  board.forEach((t,i)=>{
+    let pos;
+    if(i<=8) pos={row:1,col:i+1};
+    else if(i<=16) pos={row:i-8+1,col:9};
+    else if(i<=24) pos={row:9,col:9-(i-16)};
+    else pos={row:9-(i-24),col:1};
+    let cls="tile";
+    if(t.type==="city") cls+=" "+groupColor[t.group];
+    if(["start","island","worldtour","bonus"].includes(t.type)) cls+=" corner";
+    if(t.type==="chance") cls+=" chance";
+    if(t.type==="tax") cls+=" tax";
+    const ts = t.type==="city" ? game.tileState[i] : null;
+    const here = game.players.filter(p=>p.position===i && !p.bankrupt);
+    html += `<div class="${cls}" style="grid-row:${pos.row};grid-column:${pos.col};">
+      ${ts && ts.owner!==null ? `<div class="stamp" style="background:${PLAYER_COLORS[ts.owner]}"></div>` : ''}
+      <div class="name">${tileLabelMap[t.type]||t.name}</div>
+      ${t.type==="city" ? `<div class="price">${t.price/10000}만</div>` : ''}
+      ${ts && ts.level>0 ? `<div class="lvl">${["","🏠","🏢","🏨"][ts.level]}</div>` : ''}
+      ${here.length ? `<div class="tokens">${here.map(p=>`<div class="token" style="background:${p.color}"></div>`).join('')}</div>` : ''}
+    </div>`;
+  });
+  html += `<div class="center-info"><div class="compass">🧭</div><div class="turn-label">${game.phase==="gameover"?"게임 종료":game.players[game.current].name+"의 차례"}</div></div>`;
+  html += `</div></div>`;
+
+  html += `<div class="panel">`;
+  html += `<div class="players">${game.players.map((p,i)=>{
+    const myProps = game.tileState.map((ts,idx)=> ts&&ts.owner===i? board[idx].name:null).filter(Boolean);
+    return `<div class="player-card ${i===game.current&&game.phase!=='gameover'?'active':''} ${p.bankrupt?'bankrupt':''}">
+      <div class="player-name"><span class="dot" style="background:${p.color}"></span>${p.name}${p.bankrupt?' (파산)':''}${!p.connected?' · 대기중':''}${i===myIndex?' (나)':''}</div>
+      <div class="player-cash">${p.cash.toLocaleString()}원</div>
+      <div class="player-props">보유: ${myProps.length?myProps.join(", "):"-"} ${p.escapeCards?`· 탈출카드 x${p.escapeCards}`:''}</div>
+    </div>`;
+  }).join('')}</div>`;
+
+  html += `<div class="log">${game.log.slice(-40).map(l=>`<div>${l}</div>`).join('')}</div>`;
+
+  html += `<div class="dice-row">
+    <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[0]??'-')}</div>
+    <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[1]??'-')}</div>
+  </div>`;
+
+  html += `<div class="btn-row">`;
+  if(game.phase==="gameover"){
+    if(myRole==='host') html += `<button onclick="applyAction(0,'resetGame',[])">🔄 새 게임 시작</button>`;
+    else html += `<button disabled>게임 종료</button>`;
+  } else if(!isMyTurn()){
+    html += `<button disabled>${game.players[game.current].name}의 차례를 기다리는 중...</button>`;
+  } else if(game.phase==="await-turn-start"){
+    html += `<button onclick="act('beginTurn')">${game.players[myIndex].name} 턴 시작</button>`;
+  } else if(game.phase==="island"){
+    const me=game.players[myIndex];
+    html += `<button onclick="act('payIslandFee')" ${me.cash<100000?'disabled':''}>💸 100,000원 내고 탈출</button>`;
+    if(me.escapeCards>0) html += `<button onclick="act('useEscapeCard')">🎫 탈출카드 사용</button>`;
+    html += `<button class="secondary" onclick="act('stayIsland')">🏝️ 그냥 쉬기</button>`;
+  } else if(game.phase==="await-roll"){
+    html += `<button onclick="act('rollDice')">🎲 주사위 굴리기</button>`;
+  } else {
+    html += `<button disabled>진행 중...</button>`;
+  }
+  html += `</div>`;
+  if(myRole==='host' && game.phase!=='gameover') html += `<div class="btn-row" style="margin-top:8px;"><button class="secondary" onclick="applyAction(0,'resetGame',[])">🔄 게임 초기화</button></div>`;
+  html += `</div>`;
+
+  if(game.modal){
+    const m=game.modal;
+    html += `<div class="modal-overlay"><div class="modal">`;
+    if(m.kind==='buy'){
+      const tile=board[m.tileIdx];
+      html += `<h2>🏙️ ${tile.name}</h2><p>이 도시는 주인이 없습니다.<br>매입가: <b>${tile.price.toLocaleString()}원</b></p>`;
+      if(isMyTurn()){
+        const me=game.players[myIndex];
+        html += `<div class="btn-row"><button class="secondary" onclick="act('skipBuy')">🚶 건너뛰기 (구매 안 함)</button><button onclick="act('buyTile',[${m.tileIdx}])" ${me.cash<tile.price?'disabled':''}>💰 매입하기</button></div>`;
+      } else html += `<p><i>${game.players[game.current].name}님이 선택 중입니다...</i></p>`;
+    } else if(m.kind==='upgrade'){
+      const tile=board[m.tileIdx]; const ts=game.tileState[m.tileIdx];
+      const costs=[tile.price*0.6,tile.price*0.8,tile.price*1.2]; const lvlNames=["빈 땅","별장","빌딩","호텔"];
+      const nextCost = ts.level<3 ? Math.round(costs[ts.level]) : null;
+      html += `<h2>🏗️ ${tile.name} (내 소유)</h2><p>현재 단계: ${lvlNames[ts.level]}</p>`;
+      html += ts.level<3 ? `<div class="upg-row"><span>다음: ${lvlNames[ts.level+1]}</span><span>${nextCost.toLocaleString()}원</span></div>` : `<p>이미 최고 단계입니다.</p>`;
+      if(isMyTurn()){
+        const me=game.players[myIndex];
+        html += `<div class="btn-row"><button class="secondary" onclick="act('closeUpgrade')">넘어가기</button>${ts.level<3?`<button onclick="act('upgradeTile',[${m.tileIdx}])" ${me.cash<nextCost?'disabled':''}>업그레이드</button>`:''}</div>`;
+      } else html += `<p><i>${game.players[game.current].name}님이 선택 중입니다...</i></p>`;
+    } else if(m.kind==='info'){
+      html += `<h2>${m.title}</h2><p>${m.text}</p>`;
+      html += isMyTurn() ? `<div class="btn-row"><button onclick="act('closeInfo')">확인</button></div>` : `<p><i>${game.players[game.current].name}님을 기다리는 중...</i></p>`;
+    } else if(m.kind==='worldtour'){
+      html += `<h2>✈️ 세계여행</h2><p>여행 경비 100,000원을 내고 원하는 도시로 이동합니다.</p>`;
+      if(isMyTurn()){
+        const me=game.players[myIndex];
+        html += `<div class="dest-grid">${board.map((t,i)=> t.type==='city' ? `<button class="dest-btn" onclick="act('chooseWorldtour',[${i}])" ${me.cash<100000?'disabled':''}>${t.name}<br><small>${t.price.toLocaleString()}원</small></button>` : '').join('')}</div>`;
+      } else html += `<p><i>${game.players[game.current].name}님이 목적지를 고르는 중...</i></p>`;
+    }
+    html += `</div></div>`;
+  }
+
+  root.innerHTML = html;
+}
+
+setInterval(()=>{ if(game && game.rolling) render(); }, 90);
+
+// auto-join if a room code is present in the URL (?room=CODE) — lets people join with one click
+(function autoJoinFromUrl(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const roomParam = params.get('room');
+    if(roomParam){
+      myRole='guest'; isHost=false;
+      guestStatus="링크로 자동 접속하는 중...";
+      render();
+      // small delay to let the Trystero module finish loading
+      setTimeout(()=>{ initTrystero(roomParam.trim().toUpperCase()); }, 400);
+      return;
+    }
+  }catch(e){}
+  render();
+})();
+</script>
+</body>
+</html>
