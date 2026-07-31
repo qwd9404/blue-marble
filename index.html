@@ -6,13 +6,7 @@
 <title>세계여행 부루마블 (온라인)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<!-- 여러 CDN 경로를 활용해 로딩 안정성을 극대화한 스크립트 불러오기 -->
 <script src="https://unpkg.com/trystero@0.21.2/dist/trystero.torrent.min.js"></script>
-<script>
-  if (!window.trystero) {
-    document.write('<script src="https://cdn.jsdelivr.net/npm/trystero@0.21.2/dist/trystero.torrent.min.js"><\/script>');
-  }
-</script>
 <style>
   :root{
     --navy:#16324F; --navy-deep:#0E2338; --cream:#F4EBD9; --gold:#D3A429; --rust:#B5502D;
@@ -180,7 +174,7 @@ function resolveTileMut(g, playerIdx){
 
 let myRole=null, myIndex=null, game=null, room=null, sendMsg=null, getMsg=null;
 let isHost=false, assignedSlots={}, nextGuestSlot=1, errorMsg=null, roomCode=null, guestStatus=null;
-const APP_ID = "bm-room-v3";
+const APP_ID = "bm-room-v4";
 
 function setError(msg){ errorMsg=msg; render(); }
 function genRoomCode(){
@@ -200,7 +194,7 @@ function handleMsg(data, peerId){
 function initTrystero(code){
   const joinFn = (window.trystero && window.trystero.joinRoom);
   if(!joinFn){
-    setTimeout(() => initTrystero(code), 500);
+    setTimeout(() => initTrystero(code), 300);
     return;
   }
   try{
@@ -470,7 +464,7 @@ setInterval(()=>{ if(game && game.rolling) render(); }, 100);
       }
     }catch(e){}
     render();
-  }, 400);
+  }, 300);
 })();
 </script>
 </body>
