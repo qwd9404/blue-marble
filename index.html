@@ -32,15 +32,15 @@
   .center-info .compass{ font-size:1.8rem; }
   .center-info .turn-label{ font-family:'Playfair Display',serif; font-weight:700; font-size:0.85rem; color:var(--gold);}
   .tile{ position:relative; border-radius:4px; background:#EDE2CB; color:#2a2a2a; font-size:0.48rem; line-height:1.1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:1px; overflow:hidden; border:1px solid rgba(0,0,0,0.15);}
-  .tile .name{font-weight:700;font-size:0.5rem; word-break:keep-all;} .tile .price{font-size:0.4rem;opacity:0.8;}
-  .tile.corner{background:var(--gold);color:var(--navy-deep);font-size:0.5rem;font-weight:700;}
+  .tile .name{font-weight:700;font-size:0.56rem; word-break:keep-all; text-shadow:0 0 3px rgba(255,255,255,0.6), 0 0 1px rgba(0,0,0,0.4);} .tile .price{font-size:0.44rem;opacity:0.85;}
+  .tile.corner{background:var(--gold);color:var(--navy-deep);font-size:0.52rem;font-weight:700;}
   .tile.chance{background:#F0DDA0;} .tile.tax{background:#D9C4B0;}
   .tile.g0{background:var(--g0);} .tile.g1{background:var(--g1);color:#fff;} .tile.g2{background:var(--g2);color:#0e2338;}
   .tile.g3{background:var(--g3);color:#fff;} .tile.g4{background:var(--g4);color:#fff;}
   .stamp{position:absolute;top:1px;right:1px;width:8px;height:8px;border-radius:50%;border:1px solid rgba(0,0,0,0.5);}
-  .lvl{position:absolute;bottom:1px;left:1px;font-size:0.4rem;font-weight:700;}
-  .tokens{position:absolute;bottom:1px;display:flex;gap:1px;}
-  .token-emoji{font-size:8px;line-height:1;filter:drop-shadow(0 0 1px rgba(0,0,0,0.6));}
+  .lvl{position:absolute;bottom:1px;left:1px;font-size:0.72rem;line-height:1;filter:drop-shadow(0 0 1px rgba(0,0,0,0.5));}
+  .tokens{position:absolute;bottom:1px;right:1px;display:flex;gap:1px;}
+  .token-emoji{font-size:13px;line-height:1;filter:drop-shadow(0 0 1.5px rgba(0,0,0,0.7));}
   .panel{ background:var(--navy); border:2px solid var(--gold); border-radius:10px; padding:10px; margin-top:10px;}
   .players{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
   .player-card{flex:1;min-width:110px;background:#122a45;border-radius:6px;padding:6px;border:1.5px solid transparent;}
@@ -50,11 +50,11 @@
   .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
   .player-cash{font-size:0.75rem;color:var(--gold);}
   .player-props{font-size:0.6rem;opacity:0.7;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .log{background:#0E2338;border-radius:6px;padding:6px 8px;height:80px;overflow-y:auto;font-size:0.65rem;line-height:1.4;margin-bottom:8px;}
-  .log div{margin-bottom:2px;opacity:0.9;}
-  .latest-event{background:linear-gradient(135deg,#1a3a5c,#122a45);border:1.5px solid var(--gold);border-radius:6px;padding:6px 10px;font-size:0.72rem;text-align:center;margin-bottom:8px;color:var(--cream);}
+  .log{background:#0E2338;border-radius:6px;padding:8px 10px;height:150px;overflow-y:auto;font-size:0.72rem;line-height:1.55;margin-bottom:8px;}
+  .log div{margin-bottom:3px;opacity:0.9;}
+  .latest-event{background:linear-gradient(135deg,#1a3a5c,#122a45);border:1.5px solid var(--gold);border-radius:6px;padding:7px 10px;font-size:0.78rem;text-align:center;margin-bottom:8px;color:var(--cream);}
   .dice-label{text-align:center;font-size:0.68rem;opacity:0.8;margin-bottom:4px;}
-  .dice-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+  .dice-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
   .die{width:36px;height:36px;background:var(--cream);color:var(--navy-deep);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,0.3);}
   .die.rolling{animation:diceSpin 0.16s linear infinite;background:var(--gold);}
   @keyframes diceSpin{0%{transform:rotate(0deg) scale(1);}30%{transform:rotate(18deg) scale(1.12);}60%{transform:rotate(-16deg) scale(0.95);}100%{transform:rotate(0deg) scale(1);}}
@@ -115,6 +115,11 @@ const CHANCE_CARDS = [
 const tileLabelMap = {start:"🚀 출발",island:"🏝️ 무인도",worldtour:"✈️ 세계여행",bonus:"💰 보너스",chance:"🗝️ 황금열쇠",tax:"🧾 세금"};
 const rand6 = ()=>1+Math.floor(Math.random()*6);
 const cloneGame = (g)=>JSON.parse(JSON.stringify(g));
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16), gg = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  return `rgba(${r},${gg},${b},${alpha})`;
+}
 
 function freshGame(){
   return {
@@ -427,8 +432,8 @@ function render(){
     if(t.type==="tax") cls+=" tax";
     const ts = t.type==="city" ? game.tileState[i] : null;
     const here = game.players.filter(p=>p.position===i && !p.bankrupt);
-    html += `<div class="${cls}" style="grid-row:${pos.row};grid-column:${pos.col};">
-      ${ts && ts.owner!==null ? `<div class="stamp" style="background:${PLAYER_COLORS[ts.owner]}"></div>` : ''}
+    const ownerStyle = ts && ts.owner!==null ? `background:${hexToRgba(PLAYER_COLORS[ts.owner],0.5)};border:2px solid ${PLAYER_COLORS[ts.owner]};` : '';
+    html += `<div class="${cls}" style="grid-row:${pos.row};grid-column:${pos.col};${ownerStyle}">
       <div class="name">${tileLabelMap[t.type]||t.name}</div>
       ${t.type==="city" ? `<div class="price">${t.price/10000}만</div>` : ''}
       ${ts && ts.owner!==null ? `<div class="lvl">${LEVEL_ICONS[ts.level]}</div>` : ''}
@@ -455,9 +460,11 @@ function render(){
 
   const rollerName = game.lastRoller!==null ? game.players[game.lastRoller].name : null;
   html += `<div class="dice-label">${rollerName ? `${rollerName}${PLAYER_TOKENS[game.lastRoller]}의 주사위` : '주사위 대기 중'}</div>`;
+  const canRollNow = isMyTurn() && game.phase==="await-roll";
   html += `<div class="dice-row">
     <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[0]??'-')}</div>
     <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[1]??'-')}</div>
+    ${canRollNow ? `<button onclick="act('rollDice')" ${game.rolling?'disabled':''}>🎲 굴리기</button>` : ''}
   </div>`;
 
   html += `<div class="btn-row">`;
@@ -472,8 +479,6 @@ function render(){
     html += `<button onclick="act('payIslandFee')" ${me.cash<100000?'disabled':''}>💸 10만 원 탈출</button>`;
     if(me.escapeCards>0) html += `<button onclick="act('useEscapeCard')">🎫 탈출카드</button>`;
     html += `<button class="secondary" onclick="act('stayIsland')">🏝️ 쉬기</button>`;
-  } else if(game.phase==="await-roll"){
-    html += `<button onclick="act('rollDice')">🎲 주사위 굴리기</button>`;
   }
   html += `</div></div>`;
 
