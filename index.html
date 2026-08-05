@@ -53,11 +53,14 @@
   .log{background:#0E2338;border-radius:6px;padding:8px 10px;height:150px;overflow-y:auto;font-size:0.72rem;line-height:1.55;margin-bottom:8px;}
   .log div{margin-bottom:3px;opacity:0.9;}
   .latest-event{background:linear-gradient(135deg,#1a3a5c,#122a45);border:1.5px solid var(--gold);border-radius:6px;padding:7px 10px;font-size:0.78rem;text-align:center;margin-bottom:8px;color:var(--cream);}
-  .dice-label{text-align:center;font-size:0.68rem;opacity:0.8;margin-bottom:4px;}
-  .dice-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
+  .dice-label{text-align:center;font-size:0.68rem;opacity:0.8;margin-bottom:2px;}
+  .dice-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
   .die{width:36px;height:36px;background:var(--cream);color:var(--navy-deep);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,0.3);}
   .die.rolling{animation:diceSpin 0.16s linear infinite;background:var(--gold);}
   @keyframes diceSpin{0%{transform:rotate(0deg) scale(1);}30%{transform:rotate(18deg) scale(1.12);}60%{transform:rotate(-16deg) scale(0.95);}100%{transform:rotate(0deg) scale(1);}}
+  .center-info .btn-row.center-btn-row{margin-top:2px;}
+  .center-info .btn-row.center-btn-row button{font-size:0.68rem;padding:6px 9px;}
+  .center-info button{font-size:0.74rem;padding:6px 10px;}
   .btn-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
   button{ font-family:'Space Mono',monospace; background:var(--gold); color:var(--navy-deep); border:none; border-radius:6px; padding:8px 12px; font-weight:700; font-size:0.78rem; cursor:pointer; box-shadow:0 2px 0 #a5791c;}
   button:active{transform:translateY(1px);box-shadow:none;}
@@ -418,6 +421,8 @@ function render(){
     </div>`;
   }
 
+  const rollerName = game.lastRoller!==null ? game.players[game.lastRoller].name : null;
+  const canRollNow = isMyTurn() && game.phase==="await-roll";
   html += `<div class="board-wrap"><div class="board">`;
   board.forEach((t,i)=>{
     let pos;
@@ -440,7 +445,30 @@ function render(){
       ${here.length ? `<div class="tokens">${here.map(p=>`<span class="token-emoji" title="${p.name}">${PLAYER_TOKENS[p.idx]}</span>`).join('')}</div>` : ''}
     </div>`;
   });
-  html += `<div class="center-info"><div class="compass">🧭</div><div class="turn-label">${game.phase==="gameover"?"종료":game.players[game.current].name+" 차례"}</div></div>`;
+  let centerBtns = '';
+  if(game.phase==="gameover"){
+    if(myRole==='host') centerBtns = `<button onclick="applyAction(0,'resetGame',[])">🔄 새 게임 시작</button>`;
+  } else if(!isMyTurn()){
+    centerBtns = `<button disabled>${game.players[game.current].name} 순서 대기 중...</button>`;
+  } else if(game.phase==="await-turn-start"){
+    centerBtns = `<button onclick="act('beginTurn')">▶️ 턴 시작하기</button>`;
+  } else if(game.phase==="island"){
+    const me=game.players[myIndex];
+    centerBtns = `<button onclick="act('payIslandFee')" ${me.cash<100000?'disabled':''}>💸 10만 원 탈출</button>`;
+    if(me.escapeCards>0) centerBtns += `<button onclick="act('useEscapeCard')">🎫 탈출카드</button>`;
+    centerBtns += `<button class="secondary" onclick="act('stayIsland')">🏝️ 쉬기</button>`;
+  }
+
+  html += `<div class="center-info">
+    <div class="turn-label">${game.phase==="gameover"?"🏁 종료":game.players[game.current].name+" 차례"}</div>
+    <div class="dice-label">${rollerName ? `${rollerName}${PLAYER_TOKENS[game.lastRoller]}의 주사위` : '주사위 대기 중'}</div>
+    <div class="dice-row">
+      <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[0]??'-')}</div>
+      <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[1]??'-')}</div>
+    </div>
+    ${canRollNow ? `<button onclick="act('rollDice')" ${game.rolling?'disabled':''}>🎲 굴리기</button>` : ''}
+    ${centerBtns ? `<div class="btn-row center-btn-row">${centerBtns}</div>` : ''}
+  </div>`;
   html += `</div></div>`;
 
   html += `<div class="panel">`;
@@ -457,30 +485,7 @@ function render(){
   html += latestLog ? `<div class="latest-event">📢 ${latestLog}</div>` : '';
 
   html += `<div class="log">${game.log.slice(-30).map(l=>`<div>${l}</div>`).join('')}</div>`;
-
-  const rollerName = game.lastRoller!==null ? game.players[game.lastRoller].name : null;
-  html += `<div class="dice-label">${rollerName ? `${rollerName}${PLAYER_TOKENS[game.lastRoller]}의 주사위` : '주사위 대기 중'}</div>`;
-  const canRollNow = isMyTurn() && game.phase==="await-roll";
-  html += `<div class="dice-row">
-    <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[0]??'-')}</div>
-    <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[1]??'-')}</div>
-    ${canRollNow ? `<button onclick="act('rollDice')" ${game.rolling?'disabled':''}>🎲 굴리기</button>` : ''}
-  </div>`;
-
-  html += `<div class="btn-row">`;
-  if(game.phase==="gameover"){
-    if(myRole==='host') html += `<button onclick="applyAction(0,'resetGame',[])">🔄 새 게임 시작</button>`;
-  } else if(!isMyTurn()){
-    html += `<button disabled>${game.players[game.current].name} 순서 대기 중...</button>`;
-  } else if(game.phase==="await-turn-start"){
-    html += `<button onclick="act('beginTurn')">▶️ 턴 시작하기</button>`;
-  } else if(game.phase==="island"){
-    const me=game.players[myIndex];
-    html += `<button onclick="act('payIslandFee')" ${me.cash<100000?'disabled':''}>💸 10만 원 탈출</button>`;
-    if(me.escapeCards>0) html += `<button onclick="act('useEscapeCard')">🎫 탈출카드</button>`;
-    html += `<button class="secondary" onclick="act('stayIsland')">🏝️ 쉬기</button>`;
-  }
-  html += `</div></div>`;
+  html += `</div>`;
 
   if(game.modal){
     const m=game.modal;
