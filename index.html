@@ -40,7 +40,7 @@
   .stamp{position:absolute;top:1px;right:1px;width:8px;height:8px;border-radius:50%;border:1px solid rgba(0,0,0,0.5);}
   .lvl{position:absolute;bottom:1px;left:1px;font-size:0.4rem;font-weight:700;}
   .tokens{position:absolute;bottom:1px;display:flex;gap:1px;}
-  .token{width:6px;height:6px;border-radius:50%;border:1px solid rgba(0,0,0,0.4);}
+  .token-emoji{font-size:8px;line-height:1;filter:drop-shadow(0 0 1px rgba(0,0,0,0.6));}
   .panel{ background:var(--navy); border:2px solid var(--gold); border-radius:10px; padding:10px; margin-top:10px;}
   .players{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
   .player-card{flex:1;min-width:110px;background:#122a45;border-radius:6px;padding:6px;border:1.5px solid transparent;}
@@ -52,6 +52,8 @@
   .player-props{font-size:0.6rem;opacity:0.7;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .log{background:#0E2338;border-radius:6px;padding:6px 8px;height:80px;overflow-y:auto;font-size:0.65rem;line-height:1.4;margin-bottom:8px;}
   .log div{margin-bottom:2px;opacity:0.9;}
+  .latest-event{background:linear-gradient(135deg,#1a3a5c,#122a45);border:1.5px solid var(--gold);border-radius:6px;padding:6px 10px;font-size:0.72rem;text-align:center;margin-bottom:8px;color:var(--cream);}
+  .dice-label{text-align:center;font-size:0.68rem;opacity:0.8;margin-bottom:4px;}
   .dice-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
   .die{width:36px;height:36px;background:var(--cream);color:var(--navy-deep);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,0.3);}
   .die.rolling{animation:diceSpin 0.16s linear infinite;background:var(--gold);}
@@ -94,6 +96,10 @@ const board = [
 const N = board.length;
 const groupColor = ["g0","g1","g2","g3","g4"];
 const PLAYER_COLORS = ["#C1443B","#3B6EA8","#D3A429"];
+const PLAYER_TOKENS = ["🚗","🚙","🚕"];
+const LEVEL_ICONS = ["🚩","🏠","🏘️","🏨","🗼"];
+const LEVEL_NAMES = ["빈 땅","주택","빌라","호텔","랜드마크"];
+const MAX_LEVEL = LEVEL_ICONS.length - 1;
 const CHANCE_CARDS = [
   {text:"세계여행 복권 당첨! +150,000원", effect:(p)=>{p.cash+=150000;}},
   {text:"세관 조사에 걸렸습니다... -100,000원", effect:(p)=>{p.cash-=100000;}},
@@ -115,7 +121,7 @@ function freshGame(){
     players:[0,1,2].map(i=>({idx:i,name:"플레이어 "+(i+1),color:PLAYER_COLORS[i],cash:1000000,position:0,islandTurns:0,escapeCards:0,bankrupt:false,connected:i===0})),
     tileState: board.map(t=> t.type==="city" ? {owner:null,level:0} : null),
     current:0, log:["🧳 세계여행 부루마블이 시작되었습니다."], phase:"await-turn-start",
-    dice:[null,null], doublesStreak:0, modal:null, rolling:false,
+    dice:[null,null], doublesStreak:0, modal:null, rolling:false, lastRoller:null,
   };
 }
 
@@ -127,7 +133,8 @@ function payToll(g, playerIdx, tileIdx){
     toll = Math.round(tile.price*0.2)*(ownsAll?2:1);
   } else if(ts.level===1) toll=Math.round(tile.price*0.5);
   else if(ts.level===2) toll=Math.round(tile.price*1.0);
-  else toll=Math.round(tile.price*2.0);
+  else if(ts.level===3) toll=Math.round(tile.price*2.0);
+  else toll=Math.round(tile.price*3.0);
   p.cash-=toll; owner.cash+=toll;
   g.log.push(`🏨 ${p.name} → ${owner.name}에게 ${tile.name} 통행료 ${toll.toLocaleString()}원 지불`);
 }
@@ -318,7 +325,7 @@ function applyAction(actorIdx, name, args){
     g.rolling=true; commitHost(g);
     setTimeout(()=>{
       const g2=cloneGame(game); const playerIdx=g2.current; const p=g2.players[playerIdx];
-      const d1=rand6(), d2=rand6(); g2.dice=[d1,d2];
+      const d1=rand6(), d2=rand6(); g2.dice=[d1,d2]; g2.lastRoller=playerIdx;
       const isDouble=d1===d2; g2.doublesStreak = isDouble? g2.doublesStreak+1 : 0; g2.rolling=false;
       if(g2.doublesStreak>=3){
         g2.log.push(`🎲 ${p.name} 더블 3연속! 무인도로 이동합니다.`);
@@ -339,8 +346,8 @@ function applyAction(actorIdx, name, args){
     g.log.push(`🚶 ${g.players[g.current].name}, 구매를 건너뛰었습니다.`); afterResolveMut(g); commitHost(g);
   } else if(name==='upgradeTile'){
     const p=g.players[g.current]; const tile=board[args[0]]; const ts=g.tileState[args[0]];
-    const costs=[tile.price*0.6,tile.price*0.8,tile.price*1.2]; const cost=Math.round(costs[ts.level]);
-    if(ts.level<3 && p.cash>=cost){ p.cash-=cost; ts.level+=1; g.log.push(`🏗️ ${p.name}, ${tile.name}을(를) 건물 추가했습니다.`); }
+    const costs=[tile.price*0.6,tile.price*0.8,tile.price*1.2,tile.price*1.8]; const cost=Math.round(costs[ts.level]);
+    if(ts.level<MAX_LEVEL && p.cash>=cost){ p.cash-=cost; ts.level+=1; g.log.push(`🏗️ ${p.name}, ${tile.name}을(를) ${LEVEL_ICONS[ts.level]} ${LEVEL_NAMES[ts.level]}(으)로 업그레이드했습니다.`); }
     commitHost(g);
   } else if(name==='closeUpgrade' || name==='closeInfo'){
     afterResolveMut(g); commitHost(g);
@@ -424,8 +431,8 @@ function render(){
       ${ts && ts.owner!==null ? `<div class="stamp" style="background:${PLAYER_COLORS[ts.owner]}"></div>` : ''}
       <div class="name">${tileLabelMap[t.type]||t.name}</div>
       ${t.type==="city" ? `<div class="price">${t.price/10000}만</div>` : ''}
-      ${ts && ts.level>0 ? `<div class="lvl">${["","🏠","🏢","🏨"][ts.level]}</div>` : ''}
-      ${here.length ? `<div class="tokens">${here.map(p=>`<div class="token" style="background:${p.color}"></div>`).join('')}</div>` : ''}
+      ${ts && ts.owner!==null ? `<div class="lvl">${LEVEL_ICONS[ts.level]}</div>` : ''}
+      ${here.length ? `<div class="tokens">${here.map(p=>`<span class="token-emoji" title="${p.name}">${PLAYER_TOKENS[p.idx]}</span>`).join('')}</div>` : ''}
     </div>`;
   });
   html += `<div class="center-info"><div class="compass">🧭</div><div class="turn-label">${game.phase==="gameover"?"종료":game.players[game.current].name+" 차례"}</div></div>`;
@@ -435,14 +442,19 @@ function render(){
   html += `<div class="players">${game.players.map((p,i)=>{
     const myProps = game.tileState.map((ts,idx)=> ts&&ts.owner===i? board[idx].name:null).filter(Boolean);
     return `<div class="player-card ${i===game.current&&game.phase!=='gameover'?'active':''} ${p.bankrupt?'bankrupt':''}">
-      <div class="player-name"><span class="dot" style="background:${p.color}"></span>${p.name}${p.bankrupt?'(파산)':''}${i===myIndex?' (나)':''}</div>
+      <div class="player-name"><span style="font-size:0.9rem;">${PLAYER_TOKENS[i]}</span>${p.name}${p.bankrupt?'(파산)':''}${i===myIndex?' (나)':''}</div>
       <div class="player-cash">${p.cash.toLocaleString()}원</div>
       <div class="player-props">보유:${myProps.length}개</div>
     </div>`;
   }).join('')}</div>`;
 
+  const latestLog = game.log[game.log.length-1];
+  html += latestLog ? `<div class="latest-event">📢 ${latestLog}</div>` : '';
+
   html += `<div class="log">${game.log.slice(-30).map(l=>`<div>${l}</div>`).join('')}</div>`;
 
+  const rollerName = game.lastRoller!==null ? game.players[game.lastRoller].name : null;
+  html += `<div class="dice-label">${rollerName ? `${rollerName}${PLAYER_TOKENS[game.lastRoller]}의 주사위` : '주사위 대기 중'}</div>`;
   html += `<div class="dice-row">
     <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[0]??'-')}</div>
     <div class="die ${game.rolling?'rolling':''}">${game.rolling? rand6() :(game.dice[1]??'-')}</div>
@@ -473,16 +485,16 @@ function render(){
       html += `<h2>🏙️ ${tile.name}</h2><p>매입가: <b>${tile.price.toLocaleString()}원</b></p>`;
       if(isMyTurn()){
         const me=game.players[myIndex];
-        html += `<div class="btn-row"><button class="secondary" onclick="act('skipBuy')">통과</button><button onclick="act('buyTile',[${m.tileIdx}])" ${me.cash<tile.price?'disabled':''}>매입</button></div>`;
+        html += `<div class="btn-row"><button class="secondary" onclick="act('skipBuy')">🚫 건너뛰기</button><button onclick="act('buyTile',[${m.tileIdx}])" ${me.cash<tile.price?'disabled':''}>매입</button></div>`;
       } else html += `<p><i>${game.players[game.current].name}님 선택 중...</i></p>`;
     } else if(m.kind==='upgrade'){
       const tile=board[m.tileIdx]; const ts=game.tileState[m.tileIdx];
-      const costs=[tile.price*0.6,tile.price*0.8,tile.price*1.2]; const lvlNames=["빈 땅","별장","빌딩","호텔"];
-      const nextCost = ts.level<3 ? Math.round(costs[ts.level]) : null;
-      html += `<h2>🏗️ ${tile.name}</h2><p>현재: ${lvlNames[ts.level]}</p>`;
+      const costs=[tile.price*0.6,tile.price*0.8,tile.price*1.2,tile.price*1.8];
+      const nextCost = ts.level<MAX_LEVEL ? Math.round(costs[ts.level]) : null;
+      html += `<h2>${LEVEL_ICONS[ts.level]} ${tile.name}</h2><p>현재 단계: ${LEVEL_NAMES[ts.level]}</p>`;
       if(isMyTurn()){
         const me=game.players[myIndex];
-        html += `<div class="btn-row"><button class="secondary" onclick="act('closeUpgrade')">통과</button>${ts.level<3?`<button onclick="act('upgradeTile',[${m.tileIdx}])" ${me.cash<nextCost?'disabled':''}>업그레이드 (+${nextCost/10000}만)</button>`:''}</div>`;
+        html += `<div class="btn-row"><button class="secondary" onclick="act('closeUpgrade')">🚫 건너뛰기</button>${ts.level<MAX_LEVEL?`<button onclick="act('upgradeTile',[${m.tileIdx}])" ${me.cash<nextCost?'disabled':''}>${LEVEL_ICONS[ts.level+1]} ${LEVEL_NAMES[ts.level+1]}로 (+${nextCost/10000}만)</button>`:''}</div>`;
       } else html += `<p><i>${game.players[game.current].name}님 선택 중...</i></p>`;
     } else if(m.kind==='info'){
       html += `<h2>${m.title}</h2><p>${m.text}</p>`;
