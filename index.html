@@ -28,7 +28,7 @@
   .err{ border-color:#C1443B !important; }
   .board-wrap{ background:var(--navy); border:2px solid var(--gold); border-radius:10px; padding:4px; box-shadow:0 8px 24px rgba(0,0,0,0.4);}
   .board{ display:grid; grid-template-columns:repeat(9,1fr); grid-template-rows:repeat(9,1fr); gap:2px; aspect-ratio:1/1;}
-  .center-info{ grid-column:2/9; grid-row:2/9; background:linear-gradient(135deg,#1a3a5c,#122a45); border:1px dashed rgba(212,164,41,0.4); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:4px; gap:2px;}
+  .center-info{ grid-column:2/9; grid-row:2/9; background:linear-gradient(135deg,#1a3a5c,#122a45); border:1px dashed rgba(212,164,41,0.4); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; text-align:center; padding:6px; gap:4px; overflow-y:auto;}
   .center-info .compass{ font-size:1.8rem; }
   .center-info .turn-label{ font-family:'Playfair Display',serif; font-weight:700; font-size:0.85rem; color:var(--gold);}
   .tile{ position:relative; border-radius:4px; background:#EDE2CB; color:#2a2a2a; font-size:0.48rem; line-height:1.1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:1px; overflow:hidden; border:1px solid rgba(0,0,0,0.15);}
@@ -42,7 +42,7 @@
   .tokens{position:absolute;bottom:1px;right:1px;display:flex;gap:1px;}
   .token-emoji{font-size:17px;line-height:1;filter:drop-shadow(0 0 1.5px rgba(0,0,0,0.7));}
   .panel{ background:var(--navy); border:2px solid var(--gold); border-radius:10px; padding:10px; margin-top:10px;}
-  .players{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+  .players{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;width:100%;}
   .player-card{flex:1;min-width:110px;background:#122a45;border-radius:6px;padding:6px;border:1.5px solid transparent;}
   .player-card.active{border-color:var(--gold);box-shadow:0 0 8px rgba(212,164,41,0.4);}
   .player-card.bankrupt{opacity:0.4;}
@@ -50,9 +50,9 @@
   .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
   .player-cash{font-size:0.75rem;color:var(--gold);}
   .player-props{font-size:0.6rem;opacity:0.7;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .log{background:#0E2338;border-radius:6px;padding:8px 10px;height:150px;overflow-y:auto;font-size:0.72rem;line-height:1.55;margin-bottom:8px;}
+  .log{background:#0E2338;border-radius:6px;padding:8px 10px;height:150px;overflow-y:auto;font-size:0.72rem;line-height:1.55;margin-bottom:8px;width:100%;}
   .log div{margin-bottom:3px;opacity:0.9;}
-  .latest-event{background:linear-gradient(135deg,#1a3a5c,#122a45);border:1.5px solid var(--gold);border-radius:6px;padding:7px 10px;font-size:0.78rem;text-align:center;margin-bottom:8px;color:var(--cream);}
+  .latest-event{background:linear-gradient(135deg,#1a3a5c,#122a45);border:1.5px solid var(--gold);border-radius:6px;padding:7px 10px;font-size:0.78rem;text-align:center;margin-bottom:8px;color:var(--cream);width:100%;}
   .dice-label{text-align:center;font-size:0.68rem;opacity:0.8;margin-bottom:2px;}
   .dice-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
   .die{width:36px;height:36px;background:var(--cream);color:var(--navy-deep);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,0.3);}
@@ -504,24 +504,18 @@ function render(){
     </div>
     ${canRollNow ? `<button onclick="act('rollDice')" ${game.rolling?'disabled':''}>🎲 굴리기</button>` : ''}
     ${centerBtns ? `<div class="btn-row center-btn-row">${centerBtns}</div>` : ''}
+    <div class="players">${game.players.map((p,i)=>{
+      const myProps = game.tileState.map((ts,idx)=> ts&&ts.owner===i? board[idx].name:null).filter(Boolean);
+      return `<div class="player-card ${i===game.current&&game.phase!=='gameover'?'active':''} ${p.bankrupt?'bankrupt':''}">
+        <div class="player-name"><span style="font-size:1.15rem;">${PLAYER_TOKENS[i]}</span>${p.name}${p.bankrupt?'(파산)':''}${i===myIndex?' (나)':''}</div>
+        <div class="player-cash">${p.cash.toLocaleString()}원</div>
+        <div class="player-props">보유:${myProps.length}개</div>
+      </div>`;
+    }).join('')}</div>
+    ${game.log.length ? `<div class="latest-event">📢 ${game.log[game.log.length-1]}</div>` : ''}
+    <div class="log">${game.log.slice(-30).map(l=>`<div>${l}</div>`).join('')}</div>
   </div>`;
   html += `</div></div>`;
-
-  html += `<div class="panel">`;
-  html += `<div class="players">${game.players.map((p,i)=>{
-    const myProps = game.tileState.map((ts,idx)=> ts&&ts.owner===i? board[idx].name:null).filter(Boolean);
-    return `<div class="player-card ${i===game.current&&game.phase!=='gameover'?'active':''} ${p.bankrupt?'bankrupt':''}">
-      <div class="player-name"><span style="font-size:1.15rem;">${PLAYER_TOKENS[i]}</span>${p.name}${p.bankrupt?'(파산)':''}${i===myIndex?' (나)':''}</div>
-      <div class="player-cash">${p.cash.toLocaleString()}원</div>
-      <div class="player-props">보유:${myProps.length}개</div>
-    </div>`;
-  }).join('')}</div>`;
-
-  const latestLog = game.log[game.log.length-1];
-  html += latestLog ? `<div class="latest-event">📢 ${latestLog}</div>` : '';
-
-  html += `<div class="log">${game.log.slice(-30).map(l=>`<div>${l}</div>`).join('')}</div>`;
-  html += `</div>`;
 
   if(game.modal){
     const m=game.modal;
